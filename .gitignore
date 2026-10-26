@@ -25,3 +25,6 @@ tree-map.json
 Thumbs.db
 .idea/
 .vscode/
+
+# Editable-install metadata
+*.egg-info/
