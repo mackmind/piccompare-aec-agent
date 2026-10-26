@@ -1,0 +1,27 @@
+# Environments and caches
+.venv*
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Local runs and generated artifacts
+runs/
+*.log
+
+# Secrets and local machine manifests
+.env
+.env.*
+active-pair.json
+tree-map.json
+*.key
+*.pem
+*.p12
+*.pfx
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
