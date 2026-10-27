@@ -82,6 +82,7 @@ class MetaClient:
         self.max_attempts = max(1, max_attempts)
         self.timeout = timeout
         self._calls = 0
+        self.last_result: MetaResult | None = None
 
     @property
     def calls(self) -> int:
@@ -175,10 +176,11 @@ class MetaClient:
             usage = {}
         model = str(response.get("model") or self.model_id)
         latency_ms = int((time.perf_counter() - started) * 1000)
-        return MetaResult(
+        self.last_result = MetaResult(
             content=parsed,
             usage=usage,
             model=model,
             calls=self._calls,
             latency_ms=latency_ms,
         )
+        return self.last_result

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from typing import Any
 
 from aec.meta import MetaClient
@@ -89,7 +90,7 @@ class Critic:
         }
         result = self.client.chat_json(
             SYSTEM,
-            str(context),
+            json.dumps(context, ensure_ascii=True, sort_keys=True),
             DECISION_SCHEMA,
             schema_name="aec_critic",
         )
