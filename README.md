@@ -27,8 +27,8 @@ The **offline deterministic pipeline is implemented and tested**:
 - Report replay verifies clean reports and fails tampered reports.
 - SVG/DXF measured overlays, batch triage and agent skills are available.
 - A read-only engine smoke (`capabilities`/`compare`/`regions`) passes against
-  the 0.54H demo edition and the revised 0.55 commercial tree; each receipt is
-  bound to the tree head. The engine remains an external dependency.
+  the 0.55H demo edition and the 0.55 commercial tree; each receipt is bound to
+  the tree head. The engine remains an external dependency.
 - **Live SAM 3.1 and Muse Spark calls are not yet exercised.** The clients and
   seams exist; live runs need credentials and are marked blocked. This is not a
   live-model submission yet.
@@ -78,8 +78,8 @@ hashed report.json + report.md + replay verification
 optional SVG/DXF measured overlay and batch summary
 ```
 
-The engine is external. The client resolves a 054H/055H tree through
-`active-pair.json`, `tree-map.json` or an explicit `--engine-tree`; it never
+The engine is external. The client resolves a 055H/055C tree through
+`tree-map.json`, `active-pair.json` or an explicit `--engine-tree`; it never
 imports engine modules and never hard-codes a tree name.
 
 ## Evidence

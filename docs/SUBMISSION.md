@@ -9,8 +9,8 @@ Event: Meta Global AI Developer Hackathon, Indie Developer track,
 - [x] No engine source, engine imports, customer data or secrets.
 - [x] Synthetic fixtures and exact ground truth.
 - [x] Offline pipeline passes 12/12 pairs with 0 false positives.
-- [x] Read-only engine smoke passes on the 0.54H demo edition and the revised
-      0.55 commercial tree; receipts bind the tree head.
+- [x] Read-only engine smoke passes on the 0.55H demo edition and the 0.55
+      commercial tree; receipts bind the tree head.
 - [ ] Live SAM/Muse receipt: **not yet exercised**.
 - [ ] Final public head with the complete event code: **pending boundary review**.
 - [ ] Video URL: **not yet recorded**.

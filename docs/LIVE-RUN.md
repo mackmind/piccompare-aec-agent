@@ -15,8 +15,8 @@ engine modules.
 ## 1. Resolve the engine (read-only)
 
 ```bash
-python -m aec engine-info --engine-tree PicCompare_0.54H
-# or resolve through active-pair.json / PICCOMPARE_DEMO=1
+python -m aec engine-info --engine-tree <055H tree>
+# or resolve through tree-map / active-pair.json
 python -m aec engine-info --workspace-root ..
 ```
 
@@ -24,7 +24,7 @@ Expected: tree, version, venv python and `agent_cli.py`. For a full read-only
 check of `capabilities`, `compare` and `regions`, run:
 
 ```bash
-python scripts/engine_smoke.py --engine-tree PicCompare_0.54H --out runs/engine-smoke
+python scripts/engine_smoke.py --engine-tree <055H tree> --out runs/engine-smoke
 ```
 
 It writes a receipt bound to the tree head and dirtiness. If the engine refuses
