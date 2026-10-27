@@ -66,3 +66,23 @@ def test_live_path_with_fake_clients(tmp_path) -> None:
     assert result.report.usage["meta_model"] == "fake-meta"
     assert result.report.evidence["receipts"]["sam"]["calls"] == 2
     assert verify(result.report_path, inputs_dir=fixture).ok
+
+
+def test_live_path_refuses_split_without_meta_call(tmp_path) -> None:
+    fixture = ROOT / "fixtures" / "aec" / "split-01"
+    sam = FakeSam(fixture)
+    meta = MetaClient(
+        api_key="test-key",
+        model_id="fake-meta",
+        transport=verifying_transport,
+        sleep=lambda seconds: None,
+    )
+    result = run_pair_live(fixture, sam, meta, tmp_path)
+    assert not result.verified
+    assert result.not_compared
+    assert all(
+        finding.change_type == "room_split" for finding in result.not_compared
+    )
+    assert result.report.usage["meta_api_calls"] == 0
+    assert result.report.evidence["receipts"]["meta"]["calls"] == 0
+    assert verify(result.report_path, inputs_dir=fixture).ok

@@ -66,3 +66,39 @@ def test_non_json_raises_protocol_error(tmp_path) -> None:
     client = _client(tmp_path, runner)
     with pytest.raises(EngineProtocolError):
         client.compare("a.png", "b.png")
+
+
+def test_regions_crop_page_report_align_contracts(tmp_path) -> None:
+    artifact = {"artifact_id": "a1", "path": "out/a1.png", "sha256": "abc"}
+    runner = FakeRunner(
+        {
+            "regions": {
+                "comparison_id": "c1",
+                "regions": [],
+                "geometry": [],
+                "total": 0,
+            },
+            "crop": artifact,
+            "page": artifact,
+            "report": artifact,
+            "align": {"matrix_b_to_a": [[1, 0, 0], [0, 1, 0], [0, 0, 1]],
+                      "status": "ok"},
+            "capabilities": {"tools": []},
+        }
+    )
+    client = _client(tmp_path, runner)
+    assert client.capabilities().data["tools"] == []
+    assert client.regions("c1").data["total"] == 0
+    assert client.crop("c1", "r1").data["artifact_id"] == "a1"
+    assert client.page_image("c1", "a", 0).data["artifact_id"] == "a1"
+    assert client.report("c1").data["artifact_id"] == "a1"
+    assert client.align("a.png", "b.png").data["status"] == "ok"
+    commands = [call["argv"][2] for call in runner.calls]
+    assert commands == ["capabilities", "regions", "crop", "page", "report", "align"]
+
+
+def test_missing_required_keys_raise_protocol_error(tmp_path) -> None:
+    runner = FakeRunner({"regions": {"comparison_id": "c1"}})
+    client = _client(tmp_path, runner)
+    with pytest.raises(EngineProtocolError):
+        client.regions("c1")

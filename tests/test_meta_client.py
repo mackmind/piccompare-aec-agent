@@ -4,7 +4,12 @@ import json
 
 import pytest
 
-from aec.meta import MetaClient, MetaSchemaError, MetaUnavailable
+from aec.meta import (
+    MetaClient,
+    MetaSchemaError,
+    MetaTransportError,
+    MetaUnavailable,
+)
 
 
 class SequenceTransport:
@@ -71,3 +76,19 @@ def test_bad_content_raises_schema_error() -> None:
     client = MetaClient(api_key="secret", model_id="muse-test", transport=transport)
     with pytest.raises(MetaSchemaError):
         client.chat_json("s", "u", {"type": "object"})
+
+
+def test_401_is_terminal_and_not_retried() -> None:
+    transport = SequenceTransport([{"status": 401}])
+    client = MetaClient(
+        api_key="secret",
+        model_id="muse-test",
+        transport=transport,
+        sleep=lambda seconds: None,
+        max_attempts=3,
+    )
+    with pytest.raises(MetaTransportError) as error:
+        client.chat_json("s", "u", {"type": "object"})
+    assert error.value.status_code == 401
+    assert error.value.retryable is False
+    assert client.calls == 1

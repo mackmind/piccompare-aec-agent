@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from aec.sam import SamClient, SamSchemaError, SamUnavailable
+from aec.sam import SamClient, SamSchemaError, SamTransportError, SamUnavailable
 
 
 class SequenceTransport:
@@ -50,3 +50,18 @@ def test_sam_bad_response_raises() -> None:
     client = SamClient(api_key="secret", transport=transport)
     with pytest.raises(SamSchemaError):
         client.segment(b"png", "room")
+
+
+def test_sam_403_is_terminal_and_not_retried() -> None:
+    transport = SequenceTransport([{"status": 403}])
+    client = SamClient(
+        api_key="secret",
+        transport=transport,
+        sleep=lambda seconds: None,
+        max_attempts=3,
+    )
+    with pytest.raises(SamTransportError) as error:
+        client.segment(b"png", "room")
+    assert error.value.status_code == 403
+    assert error.value.retryable is False
+    assert client.calls == 1
