@@ -37,6 +37,16 @@ def test_missing_manifest_raises(tmp_path) -> None:
         resolve_engine(workspace_root=tmp_path)
 
 
+def test_explicit_relative_path_falls_back_to_cwd(tmp_path, monkeypatch) -> None:
+    tree = make_engine_tree(tmp_path, "PicCompare_Relative")
+    monkeypatch.chdir(tmp_path)
+    ref = resolve_engine(
+        workspace_root=tmp_path / "workspace", engine_tree="PicCompare_Relative"
+    )
+    assert ref.tree == tree.resolve()
+    assert ref.source == "explicit"
+
+
 def test_054h_and_055h_are_selected_by_manifest_not_hard_coded(tmp_path) -> None:
     for name, venv in (
         ("PicCompare_0.54H", ".venv-045"),

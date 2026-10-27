@@ -15,7 +15,7 @@ are fake-transport tested. This document is the credential-swap runbook.
 ## 1. Resolve the engine (read-only)
 
 ```bash
-python -m aec engine-info --engine-tree ../PicCompare_0.54H
+python -m aec engine-info --engine-tree PicCompare_0.54H
 # or, for 055H, the manifest/tree-map must point there; no hard-coded name
 python -m aec engine-info --workspace-root ..
 ```

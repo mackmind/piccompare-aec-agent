@@ -100,7 +100,15 @@ def resolve_engine(
 
     if engine_tree:
         tree = Path(engine_tree)
-        tree = tree.resolve() if tree.is_absolute() else (root / tree).resolve()
+        if not tree.is_absolute():
+            workspace_candidate = root / tree
+            cwd_candidate = Path(tree)
+            tree = (
+                workspace_candidate
+                if workspace_candidate.is_dir() or not cwd_candidate.is_dir()
+                else cwd_candidate
+            )
+        tree = tree.resolve()
         return _build_ref(tree, venv, "explicit", warnings, demo_mode)
 
     if demo_mode:
