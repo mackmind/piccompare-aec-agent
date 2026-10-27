@@ -26,12 +26,32 @@ def main(argv: list[str] | None = None) -> int:
     fixtures_verifier = ROOT / "scripts" / "verify_fixtures.py"
     fixtures_manifest = ROOT / "fixtures" / "manifest.json"
     if fixtures_verifier.is_file() and fixtures_manifest.is_file():
-        checks.append(
+        checks.extend(
             [
-                sys.executable,
-                "scripts/verify_fixtures.py",
-                "--offline",
-                "--geometry-only",
+                [
+                    sys.executable,
+                    "scripts/verify_fixtures.py",
+                    "--offline",
+                    "--geometry-only",
+                ],
+                [
+                    sys.executable,
+                    "scripts/run_eval.py",
+                    "--fixtures",
+                    "fixtures",
+                    "--out",
+                    "runs/accept-eval",
+                ],
+                [
+                    sys.executable,
+                    "-m",
+                    "aec",
+                    "verify",
+                    "--report",
+                    "runs/accept-eval/resize-01/report.json",
+                    "--inputs-dir",
+                    "fixtures/aec/resize-01",
+                ],
             ]
         )
     for command in checks:

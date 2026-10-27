@@ -35,3 +35,15 @@ def test_explicit_tree_wins(tmp_path) -> None:
 def test_missing_manifest_raises(tmp_path) -> None:
     with pytest.raises(EngineNotFound):
         resolve_engine(workspace_root=tmp_path)
+
+
+def test_054h_and_055h_are_selected_by_manifest_not_hard_coded(tmp_path) -> None:
+    for name, venv in (
+        ("PicCompare_0.54H", ".venv-045"),
+        ("PicCompare_0.55H", ".venv-055"),
+    ):
+        write_manifest(tmp_path, comm=name, venv=venv)
+        make_engine_tree(tmp_path, name)
+        ref = resolve_engine(workspace_root=tmp_path)
+        assert ref.tree.name == name
+        assert ref.python.parent.parent.name == venv

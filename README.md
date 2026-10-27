@@ -1,44 +1,100 @@
-# PicCompare AEC Agent — public scaffold
+# PicCompare AEC Agent
 
-A public scaffold for PicCompare's AEC measurement-verification entry in the
-Meta Global AI Developer Hackathon (Indie Developer track, 2026-10-27 to
-2026-11-04).
+**Every batch. Every doc. Every pixel. Eyes or APIs — both first-class.
+See it. Check it. Replay it.**
 
-**Status:** scaffold only. The functional workflow is being built during the
-event. This repository does not contain a working AEC implementation yet.
+A public, MIT-licensed AEC measurement-verification integration for the Meta
+Global AI Developer Hackathon (Indie Developer track, 2026-10-27 to 2026-11-04).
 
-**Working one-liner:** Every batch. Every doc. Every pixel. Eyes or APIs — both
-first-class. See it. Check it. Replay it.
+Repository: https://github.com/mackmind/piccompare-aec-agent
 
-## What this repository is
+## What it is
 
-The public, MIT-licensed integration layer. It is where the event's public AEC
-measurement-verification code, synthetic fixtures, public report schema and
-tests will live as they are built during the event.
+PicCompare AEC Agent measures rooms and spaces on two floor-plan revisions,
+matches the same elements, refuses to compare elements whose definitions differ,
+and emits a hashed, replayable evidence report. It is an integration layer; the
+PicCompare engine remains a separate proprietary dependency.
 
-## What this repository is not
+## Status
 
-- It is not the PicCompare engine. The engine is a separate proprietary product;
-  it is not included, linked or licensed here.
-- It does not include customer, employer or confidential documents.
-- It does not include internal plans, design documents, commercial strategy or
-  private evaluation data.
-- It does not grant any licence to the PicCompare engine or its commercial
-  components.
+The **offline deterministic pipeline is implemented and tested**:
 
-## Development gates
+- 12 synthetic plan pairs with exact ground truth.
+- 11 expected findings; 7 verified; 4 definition mismatches refused; 0 false
+  positives.
+- A baseline pixel-change approach would flag 11 changes; the agent refuses the
+  4 definitions it cannot compare.
+- Report replay verifies clean reports and fails tampered reports.
+- SVG/DXF measured overlays, batch triage and agent skills are available.
+- **Live SAM 3.1 and Muse Spark calls are not yet exercised.** The clients and
+  seams exist; live runs need credentials and are marked blocked. This is not a
+  live-model submission yet.
 
-The public repository runs `pytest`, `ruff`, `mypy`, the repository boundary
-check (`scripts/check_boundary.py`) and the bootstrap acceptance check
-(`scripts/accept_aec.py --offline`) in CI. The boundary check rejects engine
-imports, engine markers, secrets and local machine manifests.
+## Quick start
+
+```bash
+py -3.13 -m venv .venv-aec
+.venv-aec/Scripts/python.exe -m pip install -e ".[dev]"
+.venv-aec/Scripts/python.exe scripts/make_plans.py --out fixtures --seed 7
+.venv-aec/Scripts/python.exe scripts/run_eval.py --fixtures fixtures --out runs/eval
+.venv-aec/Scripts/python.exe -m aec measure --fixture fixtures/aec/resize-01 --out runs/measure/resize-01
+.venv-aec/Scripts/python.exe -m aec verify --report runs/measure/resize-01/report.json --inputs-dir fixtures/aec/resize-01
+.venv-aec/Scripts/python.exe -m aec export --report runs/measure/resize-01/report.json --out runs/export
+```
+
+Run the gates:
+
+```bash
+.venv-aec/Scripts/python.exe -m pytest -q
+.venv-aec/Scripts/python.exe -m ruff check .
+.venv-aec/Scripts/python.exe -m mypy src/aec
+.venv-aec/Scripts/python.exe scripts/check_boundary.py
+```
+
+## How it works
+
+```text
+floor-plan pair + config + SAM-shaped fixture payloads
+        ↓
+SAM adapter → measured elements (polygons, areas, segments, angles)
+        ↓
+element correspondence (matched / ambiguous / definition mismatch)
+        ↓
+measurement comparison (only matched elements)
+        ↓
+deterministic critic (or Muse Spark critic in a live run)
+        ↓
+hashed report.json + report.md + replay verification
+        ↓
+optional SVG/DXF measured overlay and batch summary
+```
+
+The engine is external. The client resolves a 054H/055H tree through
+`active-pair.json`, `tree-map.json` or an explicit `--engine-tree`; it never
+imports engine modules and never hard-codes a tree name.
+
+## Evidence
+
+Each report includes input hashes, element hashes, measurement hashes, a report
+digest and a replay command. The report is **hashed and replayable, not signed**.
+Definition mismatches are listed under `not_compared`, never as verified changes.
+
+## Limitations
+
+- Synthetic, clean plans only; no real-world accuracy claim.
+- No OCR, furniture, dimensions or title-block semantic understanding.
+- No full CAD reconstruction; SVG/DXF contain measured overlays only.
+- Live SAM/Muse runs are not exercised in this repository yet.
+- No art authentication, cartography or surveying coordinate support.
 
 ## Licence
 
-MIT for this repository only. See [LICENSE](LICENSE) and [NOTICE](NOTICE). The
-PicCompare engine remains separate and proprietary.
+MIT for this repository only. The PicCompare engine is a separate proprietary
+product and is not included. See [LICENSE](LICENSE) and [NOTICE](NOTICE).
 
-## Event
+## What was built during the event
 
-Meta Global AI Developer Hackathon, Indie Developer track, October 27 –
-November 4, 2026. Submission deadline: November 4, 2026, 9:00 PM ET.
+The AEC measurement/verification workflow, synthetic fixtures, correspondence,
+definition re-verification, offline evaluation, report/replay and export are
+event-built. The PicCompare engine is a pre-existing dependency and is not
+included. No internal plans or commercial components are published here.
