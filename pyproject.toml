@@ -57,7 +57,7 @@ strict = true
 files = ["src/aec"]
 
 [[tool.mypy.overrides]]
-module = ["shapely.*", "cv2.*"]
+module = ["shapely.*", "cv2.*", "ezdxf.*"]
 ignore_missing_imports = true
 
 [tool.coverage.run]
