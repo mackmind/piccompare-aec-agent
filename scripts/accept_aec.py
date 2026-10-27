@@ -23,6 +23,17 @@ def main(argv: list[str] | None = None) -> int:
     parser.parse_args(argv)
 
     checks = [[sys.executable, "scripts/check_boundary.py"]]
+    fixtures_verifier = ROOT / "scripts" / "verify_fixtures.py"
+    fixtures_manifest = ROOT / "fixtures" / "manifest.json"
+    if fixtures_verifier.is_file() and fixtures_manifest.is_file():
+        checks.append(
+            [
+                sys.executable,
+                "scripts/verify_fixtures.py",
+                "--offline",
+                "--geometry-only",
+            ]
+        )
     for command in checks:
         completed = subprocess.run(command, cwd=ROOT)
         if completed.returncode != 0:

@@ -7,6 +7,8 @@ names. Task 5 adds fixture-manifest count and hash checks.
 
 from __future__ import annotations
 
+import hashlib
+import json
 import re
 from pathlib import Path
 
@@ -86,6 +88,23 @@ def main() -> int:
         for pattern in SECRET_PATTERNS:
             if pattern.search(text):
                 errors.append(f"secret-looking string {pattern.pattern!r} in {relative}")
+
+    manifest_path = ROOT / "fixtures" / "manifest.json"
+    if manifest_path.is_file():
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        pairs = manifest.get("pairs", [])
+        if not 10 <= len(pairs) <= 12:
+            errors.append(f"expected 10-12 fixture pairs, got {len(pairs)}")
+        for pair in pairs:
+            pair_dir = ROOT / "fixtures" / "aec" / str(pair["pair_id"])
+            for name, expected in pair.get("files", {}).items():
+                path = pair_dir / name
+                if not path.is_file():
+                    errors.append(f"missing fixture file: {path.relative_to(ROOT)}")
+                else:
+                    digest = hashlib.sha256(path.read_bytes()).hexdigest()
+                    if digest != expected:
+                        errors.append(f"fixture hash mismatch: {path.relative_to(ROOT)}")
 
     if errors:
         for error in errors:

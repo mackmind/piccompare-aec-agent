@@ -1,0 +1,22 @@
+{
+  "pair_id": "mixed-01",
+  "units": "m",
+  "px_per_unit": 100.0,
+  "scale_source": "scale_bar",
+  "page": {
+    "page": 0,
+    "width": 1600,
+    "height": 1200
+  },
+  "element_types": [
+    "room"
+  ],
+  "area_tolerance_m2": 0.05,
+  "dimension_tolerance_px": 2.0,
+  "angle_tolerance_deg": 1.0,
+  "material_area_delta_m2": 0.1,
+  "match_iou_threshold": 0.5,
+  "match_centroid_tolerance_px": 8.0,
+  "match_area_ratio_tolerance": 0.25,
+  "variant": "mixed"
+}

@@ -1,0 +1,138 @@
+{
+  "schema": "piccompare-aec-fixtures/1.0",
+  "seed": 7,
+  "pairs": [
+    {
+      "pair_id": "identical-01",
+      "variant": "identical",
+      "files": {
+        "a.png": "b3aa1e48dbc16c5a0fbbf6f1b4f8b059fd74d64e99a50bdb75b58d8e300963b5",
+        "b.png": "5bd71ea73dfd011fa260184b3927eb169ef6337287e8f56eaeec766daa33ac16",
+        "config.json": "2331d0d449f686f487be44717877f082111dfd83bf2092d947d281a9f50d184e",
+        "ground_truth.json": "f6448e6f888ed24ce3cea18734610c7f513d84ea76ba8e7f0952454c06b00997",
+        "sam31.json": "1ac43de1921092d37477ea19170c4b2c07b6b7250b28cc07ffc6856be9ee7e7b"
+      }
+    },
+    {
+      "pair_id": "resize-01",
+      "variant": "resize",
+      "files": {
+        "a.png": "96e6c416852b0ad65aee5ecaaa5a1c83a5e9144df30a41ad18935c060c640bca",
+        "b.png": "d08c2a5bcd886c8b57a6c05ed92eb83b08eb1b1d0ddcff25f4fbff8c634f4c7e",
+        "config.json": "39a60e53603c4b1982539b466a4a1b0fd9c994c96a14c6450163341d5b9f2695",
+        "ground_truth.json": "088f4109a6b74a15a75c30c3f365512b95264776068ed8933eb468f105dbe7ec",
+        "sam31.json": "d458e456edae5c6fb2d317a81b8f5d19e6a950e55b9767c2eb8ce77f708bb909"
+      }
+    },
+    {
+      "pair_id": "resize-02",
+      "variant": "resize-02",
+      "files": {
+        "a.png": "37870533a1cf7e2f3f2ff4713687aeecaeb4e167b3fc874a607f676911c83edd",
+        "b.png": "d95894b456a90208ece0bef9a463de5481fa76745431014a0dfceed264165c8d",
+        "config.json": "8ae202a7b52455f2d791b0ccc8022731c61f61f0d1e77e2ac975ae99d699393d",
+        "ground_truth.json": "1a1c164a6192902e13d50fc0817f3f7796f439417120fd1ce906331398e61f09",
+        "sam31.json": "d1ba6246947ca4df84cd0bd5648ba93a4c00300de135fb7e05dacf4d3628126e"
+      }
+    },
+    {
+      "pair_id": "wall_move-01",
+      "variant": "wall_move",
+      "files": {
+        "a.png": "56f899ef0e2a7a83881b0ed1660b4d027e94a6dcdedc673c0ee16adf5c765729",
+        "b.png": "116ed5dde94ed839150df531a353c15577c219cd8d7081d3b96b25aba7d35b99",
+        "config.json": "21921558f40430c661ceaf843064c89485694ea8fcd8b3e701340fa9947a5160",
+        "ground_truth.json": "767967fe9b66ff861b62c00d2ac8f45d9d1369d146b475ee53024f478b9cf747",
+        "sam31.json": "d1d2fb641670547205e87dccb0d239643db8aa77abb9edefc5fae9c13bed2590"
+      }
+    },
+    {
+      "pair_id": "wall_move-02",
+      "variant": "wall_move-02",
+      "files": {
+        "a.png": "2a3891c44eeb8d5d66f60ecc0a7383d426a0bde1aa6f00f161a373209615b073",
+        "b.png": "15d8f6d6010182c73b458a816e06873d6ddc9a98d79a731df4f0307b6a6e39ef",
+        "config.json": "ae4ab01cd27ac1eb24b1dd70a3118611703f0a0a2438aa85cde91a5b61dc9736",
+        "ground_truth.json": "15dabbda89b2eda6910992d9bae8f34437b3776b906412e1277ef8c9c8f62d72",
+        "sam31.json": "6c02b6ba9e7e9f1cbec1012974ad570cc16cf2f54b44ea795d730cb329429506"
+      }
+    },
+    {
+      "pair_id": "split-01",
+      "variant": "split",
+      "files": {
+        "a.png": "f9f1871b21179d518d6a90cc5e1683790349e68cf24eaa7b2bfdf9c571876cc5",
+        "b.png": "ddc5051601fefc497f5c8da27c1c3b15ddc1eb9d30488495748853a5ba3fdaf4",
+        "config.json": "c24a686bb28d8f267beb10f89089926c064157a0334c125315d0abbeccb28ff5",
+        "ground_truth.json": "758263397956c70ed3add8a0cc907eb51ab81cfc18a2589cb3f87a953194b033",
+        "sam31.json": "c7ac7db2ed73ce53268786d29192f78541eb0e1a58793da50ae36482e929b8ac"
+      }
+    },
+    {
+      "pair_id": "split-02",
+      "variant": "split-02",
+      "files": {
+        "a.png": "107455cd94bed0c0aeb749eb1c9ee122f51b8535ea70ea57ad4cc325899760cc",
+        "b.png": "6c7612f562ce951d64ecf6aa61dbee4c76c90c5c0b728d69c324c57b154c8933",
+        "config.json": "4d80bd1f49c6f260ca4bdef69d27a19c776c29288fbbb9c492de3090af7ed6fa",
+        "ground_truth.json": "37baeb8dfacb7ecf6ed5609754f5c6d22db59b1e4d5ef4000c1ab52e4cc201d0",
+        "sam31.json": "211954967494a6139e4cdeb94a0da9ac9152e2a90d898da5a1da33c1dd6d11d1"
+      }
+    },
+    {
+      "pair_id": "merge-01",
+      "variant": "merge",
+      "files": {
+        "a.png": "1b975f432a3cc9301972762d63a0519a7d41278d303ef69f59ca308fa810deaa",
+        "b.png": "87bc512f9ee7f2ba96ddca88ea86e503110665f8032a9ad83454e3b2de4a4084",
+        "config.json": "c8cd5d771f6ca5ec87941816b6e117c2bedf7c4a5f6198a22b64456189eed62b",
+        "ground_truth.json": "bdee73fa0913ea2653a3d3ef878441459b5c7cb8b8176ce8165767d68defeb4c",
+        "sam31.json": "0dc34684cb0a10fedb697c4c5e483e0763fd8b8dcdbd509feba2380dd8335a99"
+      }
+    },
+    {
+      "pair_id": "merge-02",
+      "variant": "merge-02",
+      "files": {
+        "a.png": "86a0731248e4f7913d932d752b55b96ba8653f5e3d668f12bc03c37157a78911",
+        "b.png": "0b1021a44258fb470db8c2d086967ce2aa2deb579c9f0cae8c116e50b17fa2c0",
+        "config.json": "e99bc29ac1fb0c624162703d8609efc9578bc569a6b0caf7aa9f078f1ed467a5",
+        "ground_truth.json": "38dbed29f9cdfadddde889489e9b70b240b96ac93b1a1f50f28de1437acee546",
+        "sam31.json": "29a651e198e8dfbff948d44d9ea03f1bde746335b56cc791224157f53983ac7a"
+      }
+    },
+    {
+      "pair_id": "label_change-01",
+      "variant": "label_change",
+      "files": {
+        "a.png": "16d71033479e0499d88fb213268c8181039372b711442a185ad7ab7b327dba0c",
+        "b.png": "7e567cc61bc93b9349a66990577b27d21d5f1c227923cf8ad72ebd4cb46c7c4c",
+        "config.json": "2309ddf21d9a89df4a93ffb1f5c425951238c3320d42292ce917f01b4950dc17",
+        "ground_truth.json": "e912c2661d3d00eaacd64fa941b590a9e077d8042d31c1dc3b057ff319162492",
+        "sam31.json": "dd7245a9df173a70154f5bd6639a43a0688c380e2fcb5f1f47a079b1a25a7fc4"
+      }
+    },
+    {
+      "pair_id": "noise-01",
+      "variant": "noise",
+      "files": {
+        "a.png": "682e747a00a22a860be19f060ed065404465cba2ddfbee0ff6a24eb2f42126af",
+        "b.png": "ba037af71232c43e0d6d060d3b3198e42d0a3c27eedf3bc968b13c111d6ee3b8",
+        "config.json": "effbc6454437a3e82cb5f3d9da5c8e918436fd32dd6bb15b824586f2b39d1754",
+        "ground_truth.json": "28a9a2950472a4a8315f98f3e07710978e54932a828c034d3f33a1c0c1787bd2",
+        "sam31.json": "846a2e805a779df90bbbe391a371d6e5822374db87e3e2df3a1bd78537704baa"
+      }
+    },
+    {
+      "pair_id": "mixed-01",
+      "variant": "mixed",
+      "files": {
+        "a.png": "11146eb1c3e90ca0029f6f9042a3a5c1c61093bece94c5433fa094458e414343",
+        "b.png": "5c63b1ea05448324ba303fe8087ebc44c6349a69dd9868a646c673cddd3294b4",
+        "config.json": "6c417b0a5e590a83cb62934188c2470c316e8fa2aa044296b79ab5c118a4ec5b",
+        "ground_truth.json": "f344942a1e76ea3de78707e580034c42597d706592b5e940af389fee072dea94",
+        "sam31.json": "8db9e5a84e53ecfcab65f376b2d03ad8a1d1e7c3543beedc7eebff8fef54183c"
+      }
+    }
+  ]
+}
