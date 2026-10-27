@@ -2,6 +2,9 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from aec.evidence import verify
+from aec.models import Report
+
 ROOT = Path(__file__).resolve().parent.parent
 
 
@@ -30,3 +33,11 @@ def test_limitations_are_explicit() -> None:
     text = (ROOT / "docs" / "LIMITATIONS.md").read_text(encoding="utf-8")
     for phrase in ["Synthetic data only", "No live model evidence", "No full CAD"]:
         assert phrase in text
+
+
+def test_sample_report_is_valid_and_verifies() -> None:
+    path = ROOT / "demo" / "sample-report.json"
+    report = Report.model_validate_json(path.read_text(encoding="utf-8"))
+    assert report.findings
+    assert report.demo_notice == "HACKATHON DEMO \u2014 NOT AN EVIDENCE RECORD"
+    assert verify(path, inputs_dir=ROOT / "fixtures" / "aec" / "resize-01").ok

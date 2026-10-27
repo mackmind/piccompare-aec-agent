@@ -39,7 +39,8 @@ portal deadline: 2026-11-04 21:00 ET.
 | Architecture | `docs/ARCHITECTURE.md` |
 | Dataset | `docs/DATASET.md` |
 | Limitations | `docs/LIMITATIONS.md` |
-| Sample report | `runs/eval/resize-01/report.json` after generation |
+| Sample report | `demo/sample-report.json` and `demo/sample-report.md` |
+| Measured overlays | `demo/overlays/resize-01.svg` and `.dxf` |
 
 ## Pre-submission gates
 

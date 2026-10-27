@@ -1,0 +1,642 @@
+{
+  "schema_version": "piccompare-aec-report/1.0",
+  "demo_notice": "HACKATHON DEMO \u2014 NOT AN EVIDENCE RECORD",
+  "generated_at": "2026-10-27T00:42:30+00:00",
+  "engine": {
+    "name": "fixture",
+    "mode": "offline_deterministic"
+  },
+  "inputs": {
+    "a": "a.png",
+    "b": "b.png"
+  },
+  "settings": {
+    "variant": "resize",
+    "mode": "offline_deterministic"
+  },
+  "plan": {
+    "pair_id": "resize-01",
+    "units": "m",
+    "px_per_unit": 100.0,
+    "element_types": [
+      "room"
+    ],
+    "area_tolerance_m2": 0.05,
+    "dimension_tolerance_px": 2.0,
+    "angle_tolerance_deg": 1.0,
+    "material_area_delta_m2": 0.1,
+    "match_iou_threshold": 0.5,
+    "match_centroid_tolerance_px": 50.0,
+    "match_area_ratio_tolerance": 0.25,
+    "scale_source": "scale_bar"
+  },
+  "pages": [
+    {
+      "page": 0,
+      "width": 1600,
+      "height": 1200
+    }
+  ],
+  "elements_a": [
+    {
+      "element_id": "resize-01:a:0:room:0",
+      "room_id": "R1",
+      "page": 0,
+      "element_type": "room",
+      "label": "ROOM A",
+      "polygon_px": [
+        [
+          100.0,
+          100.0
+        ],
+        [
+          500.0,
+          100.0
+        ],
+        [
+          500.0,
+          500.0
+        ],
+        [
+          100.0,
+          500.0
+        ],
+        [
+          100.0,
+          100.0
+        ]
+      ],
+      "area_px2": 160000.0,
+      "area_m2": 16.0,
+      "centroid_px": [
+        300.0,
+        300.0
+      ],
+      "segments_px": [
+        400.0,
+        400.0,
+        400.0,
+        400.0
+      ],
+      "angles_deg": [
+        90.0,
+        90.0,
+        90.0,
+        90.0
+      ],
+      "source_objects": [
+        "resize-01:a:0:room:0"
+      ],
+      "confidence": 0.95
+    },
+    {
+      "element_id": "resize-01:a:0:room:1",
+      "room_id": "R2",
+      "page": 0,
+      "element_type": "room",
+      "label": "ROOM B",
+      "polygon_px": [
+        [
+          600.0,
+          100.0
+        ],
+        [
+          1000.0,
+          100.0
+        ],
+        [
+          1000.0,
+          500.0
+        ],
+        [
+          600.0,
+          500.0
+        ],
+        [
+          600.0,
+          100.0
+        ]
+      ],
+      "area_px2": 160000.0,
+      "area_m2": 16.0,
+      "centroid_px": [
+        800.0,
+        300.0
+      ],
+      "segments_px": [
+        400.0,
+        400.0,
+        400.0,
+        400.0
+      ],
+      "angles_deg": [
+        90.0,
+        90.0,
+        90.0,
+        90.0
+      ],
+      "source_objects": [
+        "resize-01:a:0:room:1"
+      ],
+      "confidence": 0.95
+    },
+    {
+      "element_id": "resize-01:a:0:room:2",
+      "room_id": "R3",
+      "page": 0,
+      "element_type": "room",
+      "label": "ROOM C",
+      "polygon_px": [
+        [
+          100.0,
+          600.0
+        ],
+        [
+          500.0,
+          600.0
+        ],
+        [
+          500.0,
+          900.0
+        ],
+        [
+          100.0,
+          900.0
+        ],
+        [
+          100.0,
+          600.0
+        ]
+      ],
+      "area_px2": 120000.0,
+      "area_m2": 12.0,
+      "centroid_px": [
+        300.0,
+        750.0
+      ],
+      "segments_px": [
+        400.0,
+        300.0,
+        400.0,
+        300.0
+      ],
+      "angles_deg": [
+        90.0,
+        90.0,
+        90.0,
+        90.0
+      ],
+      "source_objects": [
+        "resize-01:a:0:room:2"
+      ],
+      "confidence": 0.95
+    },
+    {
+      "element_id": "resize-01:a:0:room:3",
+      "room_id": "R4",
+      "page": 0,
+      "element_type": "room",
+      "label": "ROOM D",
+      "polygon_px": [
+        [
+          600.0,
+          600.0
+        ],
+        [
+          1000.0,
+          600.0
+        ],
+        [
+          1000.0,
+          900.0
+        ],
+        [
+          600.0,
+          900.0
+        ],
+        [
+          600.0,
+          600.0
+        ]
+      ],
+      "area_px2": 120000.0,
+      "area_m2": 12.0,
+      "centroid_px": [
+        800.0,
+        750.0
+      ],
+      "segments_px": [
+        400.0,
+        300.0,
+        400.0,
+        300.0
+      ],
+      "angles_deg": [
+        90.0,
+        90.0,
+        90.0,
+        90.0
+      ],
+      "source_objects": [
+        "resize-01:a:0:room:3"
+      ],
+      "confidence": 0.95
+    }
+  ],
+  "elements_b": [
+    {
+      "element_id": "resize-01:b:0:room:0",
+      "room_id": "R1",
+      "page": 0,
+      "element_type": "room",
+      "label": "ROOM A",
+      "polygon_px": [
+        [
+          100.0,
+          100.0
+        ],
+        [
+          550.0,
+          100.0
+        ],
+        [
+          550.0,
+          500.0
+        ],
+        [
+          100.0,
+          500.0
+        ],
+        [
+          100.0,
+          100.0
+        ]
+      ],
+      "area_px2": 180000.0,
+      "area_m2": 18.0,
+      "centroid_px": [
+        325.0,
+        300.0
+      ],
+      "segments_px": [
+        450.0,
+        400.0,
+        450.0,
+        400.0
+      ],
+      "angles_deg": [
+        90.0,
+        90.0,
+        90.0,
+        90.0
+      ],
+      "source_objects": [
+        "resize-01:b:0:room:0"
+      ],
+      "confidence": 0.95
+    },
+    {
+      "element_id": "resize-01:b:0:room:1",
+      "room_id": "R2",
+      "page": 0,
+      "element_type": "room",
+      "label": "ROOM B",
+      "polygon_px": [
+        [
+          600.0,
+          100.0
+        ],
+        [
+          1000.0,
+          100.0
+        ],
+        [
+          1000.0,
+          500.0
+        ],
+        [
+          600.0,
+          500.0
+        ],
+        [
+          600.0,
+          100.0
+        ]
+      ],
+      "area_px2": 160000.0,
+      "area_m2": 16.0,
+      "centroid_px": [
+        800.0,
+        300.0
+      ],
+      "segments_px": [
+        400.0,
+        400.0,
+        400.0,
+        400.0
+      ],
+      "angles_deg": [
+        90.0,
+        90.0,
+        90.0,
+        90.0
+      ],
+      "source_objects": [
+        "resize-01:b:0:room:1"
+      ],
+      "confidence": 0.95
+    },
+    {
+      "element_id": "resize-01:b:0:room:2",
+      "room_id": "R3",
+      "page": 0,
+      "element_type": "room",
+      "label": "ROOM C",
+      "polygon_px": [
+        [
+          100.0,
+          600.0
+        ],
+        [
+          500.0,
+          600.0
+        ],
+        [
+          500.0,
+          900.0
+        ],
+        [
+          100.0,
+          900.0
+        ],
+        [
+          100.0,
+          600.0
+        ]
+      ],
+      "area_px2": 120000.0,
+      "area_m2": 12.0,
+      "centroid_px": [
+        300.0,
+        750.0
+      ],
+      "segments_px": [
+        400.0,
+        300.0,
+        400.0,
+        300.0
+      ],
+      "angles_deg": [
+        90.0,
+        90.0,
+        90.0,
+        90.0
+      ],
+      "source_objects": [
+        "resize-01:b:0:room:2"
+      ],
+      "confidence": 0.95
+    },
+    {
+      "element_id": "resize-01:b:0:room:3",
+      "room_id": "R4",
+      "page": 0,
+      "element_type": "room",
+      "label": "ROOM D",
+      "polygon_px": [
+        [
+          600.0,
+          600.0
+        ],
+        [
+          1000.0,
+          600.0
+        ],
+        [
+          1000.0,
+          900.0
+        ],
+        [
+          600.0,
+          900.0
+        ],
+        [
+          600.0,
+          600.0
+        ]
+      ],
+      "area_px2": 120000.0,
+      "area_m2": 12.0,
+      "centroid_px": [
+        800.0,
+        750.0
+      ],
+      "segments_px": [
+        400.0,
+        300.0,
+        400.0,
+        300.0
+      ],
+      "angles_deg": [
+        90.0,
+        90.0,
+        90.0,
+        90.0
+      ],
+      "source_objects": [
+        "resize-01:b:0:room:3"
+      ],
+      "confidence": 0.95
+    }
+  ],
+  "matches": [
+    {
+      "a_id": "resize-01:a:0:room:0",
+      "b_id": "resize-01:b:0:room:0",
+      "status": "matched",
+      "iou": 0.8888888888888888,
+      "centroid_delta_px": 25.0,
+      "area_ratio": 0.8888888888888888,
+      "reasons": [
+        "iou and centroid within tolerance"
+      ]
+    },
+    {
+      "a_id": "resize-01:a:0:room:1",
+      "b_id": "resize-01:b:0:room:1",
+      "status": "matched",
+      "iou": 1.0,
+      "centroid_delta_px": 0.0,
+      "area_ratio": 1.0,
+      "reasons": [
+        "iou and centroid within tolerance"
+      ]
+    },
+    {
+      "a_id": "resize-01:a:0:room:2",
+      "b_id": "resize-01:b:0:room:2",
+      "status": "matched",
+      "iou": 1.0,
+      "centroid_delta_px": 0.0,
+      "area_ratio": 1.0,
+      "reasons": [
+        "iou and centroid within tolerance"
+      ]
+    },
+    {
+      "a_id": "resize-01:a:0:room:3",
+      "b_id": "resize-01:b:0:room:3",
+      "status": "matched",
+      "iou": 1.0,
+      "centroid_delta_px": 0.0,
+      "area_ratio": 1.0,
+      "reasons": [
+        "iou and centroid within tolerance"
+      ]
+    }
+  ],
+  "measurements": [
+    {
+      "element_id": "resize-01:a:0:room:0",
+      "status": "comparable",
+      "area_delta_m2": 2.0,
+      "segment_deltas_px": [
+        50.0,
+        0.0,
+        50.0,
+        0.0
+      ],
+      "angle_deltas_deg": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reasons": [
+        "area_delta",
+        "segment_delta"
+      ]
+    },
+    {
+      "element_id": "resize-01:a:0:room:1",
+      "status": "no_material_change",
+      "area_delta_m2": 0.0,
+      "segment_deltas_px": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "angle_deltas_deg": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reasons": []
+    },
+    {
+      "element_id": "resize-01:a:0:room:2",
+      "status": "no_material_change",
+      "area_delta_m2": 0.0,
+      "segment_deltas_px": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "angle_deltas_deg": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reasons": []
+    },
+    {
+      "element_id": "resize-01:a:0:room:3",
+      "status": "no_material_change",
+      "area_delta_m2": 0.0,
+      "segment_deltas_px": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "angle_deltas_deg": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reasons": []
+    }
+  ],
+  "findings": [
+    {
+      "finding_id": "room_resized:resize-01:a:0:room:0",
+      "change_type": "room_resized",
+      "element_ids": [
+        "resize-01:a:0:room:0",
+        "resize-01:b:0:room:0"
+      ],
+      "materiality": "high",
+      "status": "verified",
+      "claim": "area_delta; segment_delta; area 16.000 -> 18.000 m2 (delta +2.000)",
+      "evidence_refs": [
+        "resize-01:a:0:room:0",
+        "resize-01:b:0:room:0"
+      ],
+      "measurement_refs": [
+        "measurement:resize-01:a:0:room:0"
+      ],
+      "reasons": [
+        "area_delta",
+        "segment_delta",
+        "deterministic offline critic"
+      ]
+    }
+  ],
+  "rejected": [],
+  "not_compared": [],
+  "evidence": {
+    "inputs": {
+      "a.png": "96e6c416852b0ad65aee5ecaaa5a1c83a5e9144df30a41ad18935c060c640bca",
+      "b.png": "d08c2a5bcd886c8b57a6c05ed92eb83b08eb1b1d0ddcff25f4fbff8c634f4c7e"
+    },
+    "elements": {
+      "resize-01:a:0:room:0": "b81a20b54520e04264c79610fde1bd8b77d465da091d937eb57321bb33a28951",
+      "resize-01:a:0:room:1": "ac7ef839bd58e6983a4dcded251dbec5d2a560340e8e1c85eadb0e217842f41e",
+      "resize-01:a:0:room:2": "9779eaa24eaee69dbf4ea0a1386590da419caa92baa0fd8e615df732a90fbe81",
+      "resize-01:a:0:room:3": "79f749c5353d89aead15084341bbccd11d3ddaace479a5dc583ead50d8defe55",
+      "resize-01:b:0:room:0": "1511f31388bad5699e0f1fd041815d7f25ed80a2e8be04bea43a23b9b1b378e3",
+      "resize-01:b:0:room:1": "504cfae5df1614827cf66f8024ccc5be781fe2646122921ff530b6e7321739dd",
+      "resize-01:b:0:room:2": "bf8a2258dac9fe572893f94c1e9d102be6f6d8583bd84cabe70b044bc39c1ed9",
+      "resize-01:b:0:room:3": "e873c76a9aaf5c105e4051c5a359a3e1feb7b8d0dffd45a2c434de9df9c54fa2"
+    },
+    "measurements": {
+      "resize-01:a:0:room:0": "cf354833353cb68bef64f4804128ee652aa4962a0da7ebea34a5d7ba79744785",
+      "resize-01:a:0:room:1": "289c6d216dc6c0a6da3ab9e3670775c415b04c6aee11475e3d0c9a97737aa4c2",
+      "resize-01:a:0:room:2": "a012e6bb6b86a57aaa3820c22296b8ea434524ad43619c3b174efa8c0ff35fb0",
+      "resize-01:a:0:room:3": "be3b09c1a26a59cb5677d817d8347f58a1ea201248baa0c970865e22d9e4b060"
+    },
+    "receipts": {
+      "provider": "offline_deterministic",
+      "network": false,
+      "meta_api_calls": 0
+    }
+  },
+  "usage": {
+    "provider": "offline_deterministic",
+    "model": null,
+    "network": false,
+    "meta_api_calls": 0,
+    "fallback_used": false,
+    "note": "Offline fixture evaluation; no Meta model called."
+  },
+  "limitations": [
+    "Synthetic plans only; no real-world accuracy claim.",
+    "Deterministic offline critic; no live Meta call in this run."
+  ],
+  "digest": "8972225a84b3854d7f9f55b6bbb3b20828b95f0107963edc780323a908fe1eb9"
+}

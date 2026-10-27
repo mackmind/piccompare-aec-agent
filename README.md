@@ -42,6 +42,10 @@ py -3.13 -m venv .venv-aec
 .venv-aec/Scripts/python.exe -m aec export --report runs/measure/resize-01/report.json --out runs/export
 ```
 
+Inspect the committed sample evidence:
+[demo/sample-report.md](demo/sample-report.md) and the measured overlay
+[demo/overlays/resize-01.svg](demo/overlays/resize-01.svg).
+
 Run the gates:
 
 ```bash
