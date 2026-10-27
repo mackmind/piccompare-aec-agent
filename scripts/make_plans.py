@@ -128,7 +128,7 @@ def _changes_for_variant(variant: str) -> list[dict[str, Any]]:
         room_id = "R1" if variant == "wall_move" else "R2"
         return [
             {
-                "type": "wall_moved",
+                "type": "room_resized",
                 "room_ids": [room_id],
                 "area_delta_m2": 0.8,
                 "expected": "verified",

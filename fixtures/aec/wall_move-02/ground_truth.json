@@ -274,7 +274,7 @@
   ],
   "changes": [
     {
-      "type": "wall_moved",
+      "type": "room_resized",
       "room_ids": [
         "R2"
       ],
@@ -285,7 +285,7 @@
   ],
   "expected_findings": [
     {
-      "change_type": "wall_moved",
+      "change_type": "room_resized",
       "room_ids": [
         "R2"
       ],

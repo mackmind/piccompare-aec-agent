@@ -42,7 +42,7 @@
         "a.png": "56f899ef0e2a7a83881b0ed1660b4d027e94a6dcdedc673c0ee16adf5c765729",
         "b.png": "116ed5dde94ed839150df531a353c15577c219cd8d7081d3b96b25aba7d35b99",
         "config.json": "21921558f40430c661ceaf843064c89485694ea8fcd8b3e701340fa9947a5160",
-        "ground_truth.json": "767967fe9b66ff861b62c00d2ac8f45d9d1369d146b475ee53024f478b9cf747",
+        "ground_truth.json": "92a9e5868939fb272fc82fc2f1607e732686a4aac21206efc6786da1dda0b094",
         "sam31.json": "d1d2fb641670547205e87dccb0d239643db8aa77abb9edefc5fae9c13bed2590"
       }
     },
@@ -53,7 +53,7 @@
         "a.png": "2a3891c44eeb8d5d66f60ecc0a7383d426a0bde1aa6f00f161a373209615b073",
         "b.png": "15d8f6d6010182c73b458a816e06873d6ddc9a98d79a731df4f0307b6a6e39ef",
         "config.json": "ae4ab01cd27ac1eb24b1dd70a3118611703f0a0a2438aa85cde91a5b61dc9736",
-        "ground_truth.json": "15dabbda89b2eda6910992d9bae8f34437b3776b906412e1277ef8c9c8f62d72",
+        "ground_truth.json": "56ec931f5b26954951a76afdd0c82f954f7d7f530404e216ebe5ec35d448b0ea",
         "sam31.json": "6c02b6ba9e7e9f1cbec1012974ad570cc16cf2f54b44ea795d730cb329429506"
       }
     },

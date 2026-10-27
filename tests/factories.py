@@ -36,6 +36,7 @@ def spec(
         "scale_source": "config",
         "match_iou_threshold": iou,
         "match_centroid_tolerance_px": centroid,
+        "match_area_ratio_tolerance": 0.4,
     }
     values.update(overrides)
     return PlanSpec(**values)
