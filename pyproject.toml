@@ -52,12 +52,12 @@ target-version = "py311"
 select = ["E", "F", "I", "UP", "B", "SIM"]
 
 [tool.mypy]
-python_version = "3.11"
+python_version = "3.12"
 strict = true
 files = ["src/aec"]
 
 [[tool.mypy.overrides]]
-module = ["shapely.*"]
+module = ["shapely.*", "cv2.*"]
 ignore_missing_imports = true
 
 [tool.coverage.run]
