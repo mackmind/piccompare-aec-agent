@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import subprocess
+import sys
 from pathlib import Path
 
 import pytest
@@ -14,6 +16,17 @@ def test_cli_prints_version(capsys) -> None:
         main(["--version"])
     assert error.value.code == 0
     assert "0.1.0" in capsys.readouterr().out
+
+
+def test_module_entry_prints_version() -> None:
+    result = subprocess.run(
+        [sys.executable, "-m", "aec", "--version"],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0
+    assert "0.1.0" in result.stdout
 
 
 def test_cli_measure_and_verify(tmp_path) -> None:

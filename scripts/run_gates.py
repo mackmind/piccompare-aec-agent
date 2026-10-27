@@ -39,7 +39,7 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     commands = [
-        [PY, "-m", "pytest", "-q"],
+        [PY, "-m", "pytest", "--cov=src/aec", "--cov-fail-under=85", "-q"],
         [PY, "-m", "ruff", "check", "."],
         [PY, "-m", "mypy", "src/aec"],
         [PY, "scripts/check_boundary.py"],

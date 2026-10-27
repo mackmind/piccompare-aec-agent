@@ -18,7 +18,7 @@ jobs:
           python-version: ${{ matrix.python }}
       - run: python -m pip install -U pip
       - run: python -m pip install -e ".[dev]"
-      - run: python -m pytest -q
+      - run: python -m pytest --cov=src/aec --cov-fail-under=85 -q
       - run: python -m ruff check .
       - run: python -m mypy src/aec
       - run: python scripts/check_boundary.py
