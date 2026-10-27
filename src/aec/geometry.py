@@ -6,6 +6,7 @@ import math
 from collections.abc import Sequence
 
 from shapely.geometry import Polygon
+from shapely.ops import unary_union
 
 Point = tuple[float, float]
 PolygonLike = Sequence[Sequence[float]]
@@ -120,3 +121,16 @@ def polygon_iou(first: PolygonLike, second: PolygonLike) -> float:
     if union.area == 0:
         return 0.0
     return float(a.intersection(b).area / union.area)
+
+
+def polygon_coverage(polygon: PolygonLike, candidates: Sequence[PolygonLike]) -> float:
+    """Fraction of ``polygon`` covered by the union of candidate polygons."""
+    target = _shape(polygon)
+    if target.is_empty or target.area == 0:
+        return 0.0
+    shapes = [_shape(candidate) for candidate in candidates]
+    shapes = [shape for shape in shapes if not shape.is_empty]
+    if not shapes:
+        return 0.0
+    union = unary_union(shapes)
+    return float(target.intersection(union).area / target.area)
