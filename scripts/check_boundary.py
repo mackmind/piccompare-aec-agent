@@ -46,8 +46,28 @@ SECRET_PATTERNS = [
     re.compile(r"\bxox[baprs]-[A-Za-z0-9-]{10,}\b"),
     re.compile(r"(?i)\bpassword\s*[:=]\s*['\"][^'\"]{4,}['\"]"),
 ]
-FORBIDDEN_NAMES = {".env", "active-pair.json", "tree-map.json", "id_rsa", "id_ed25519"}
+FORBIDDEN_NAMES = {
+    ".env",
+    "active-pair.json",
+    "tree-map.json",
+    "id_rsa",
+    "id_ed25519",
+}
+FORBIDDEN_NAME_TOKENS = {"handoff", "backlog", "decision", "status", "review"}
 FORBIDDEN_SUFFIXES = {".pem", ".key", ".p12", ".pfx", ".pyc", ".pyo"}
+
+
+def name_errors(relative: Path) -> list[str]:
+    """Internal record names that must not ship in the public tree."""
+    errors: list[str] = []
+    if relative.name.lower() in FORBIDDEN_NAMES:
+        errors.append(f"forbidden file name: {relative}")
+    tokens = set(re.split(r"[-_.]", relative.stem.lower()))
+    errors.extend(
+        f"internal record name {token!r} in the public tree: {relative}"
+        for token in sorted(FORBIDDEN_NAME_TOKENS & tokens)
+    )
+    return errors
 
 
 def iter_files():
@@ -69,8 +89,7 @@ def main() -> int:
     for path, relative in iter_files():
         if relative.as_posix() in SKIP_RELATIVE:
             continue
-        if relative.name in FORBIDDEN_NAMES:
-            errors.append(f"forbidden file name: {relative}")
+        errors.extend(name_errors(relative))
         if relative.suffix.lower() in FORBIDDEN_SUFFIXES:
             errors.append(f"forbidden file type: {relative}")
         if relative.suffix.lower() not in TEXT_SUFFIXES:
