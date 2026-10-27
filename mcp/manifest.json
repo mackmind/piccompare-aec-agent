@@ -1,0 +1,102 @@
+{
+  "schema": "piccompare-aec-capabilities/1.0",
+  "note": "CLI and external-engine capabilities. The public repo does not ship an MCP server; this manifest is the stable tool index for a future MCP wrapper.",
+  "tools": [
+    {
+      "name": "aec.measure",
+      "description": "Measure one synthetic floor-plan pair and write a hashed report.",
+      "transport": "cli",
+      "status": "available",
+      "input_schema": {"fixture": "string", "out": "string|null"},
+      "example": "python -m aec measure --fixture fixtures/aec/resize-01 --out runs/measure/resize-01"
+    },
+    {
+      "name": "aec.verify",
+      "description": "Verify report digest, input hashes, element hashes and measurement hashes.",
+      "transport": "cli",
+      "status": "available",
+      "input_schema": {"report": "string", "inputs_dir": "string|null"},
+      "example": "python -m aec verify --report runs/measure/resize-01/report.json --inputs-dir fixtures/aec/resize-01"
+    },
+    {
+      "name": "aec.export",
+      "description": "Export a measured plan to SVG and/or DXF.",
+      "transport": "cli",
+      "status": "available",
+      "input_schema": {"report": "string", "format": "svg|dxf|both", "out": "string"},
+      "example": "python -m aec export --report report.json --out runs/export"
+    },
+    {
+      "name": "aec.engine_info",
+      "description": "Resolve an external PicCompare 054H/055H engine tree by manifest or explicit path.",
+      "transport": "cli",
+      "status": "available",
+      "input_schema": {"workspace_root": "string|null", "engine_tree": "string|null"},
+      "example": "python -m aec engine-info --engine-tree ../PicCompare_0.54H"
+    },
+    {
+      "name": "aec.batch",
+      "description": "Aggregate per-pair reports into a materiality-sorted batch summary.",
+      "transport": "cli",
+      "status": "available",
+      "input_schema": {"reports": "string", "out": "string"},
+      "example": "python scripts/run_batch.py --reports runs/eval --out runs/batch"
+    },
+    {
+      "name": "aec.eval",
+      "description": "Run the offline deterministic evaluation over verified fixtures.",
+      "transport": "cli",
+      "status": "available",
+      "input_schema": {"fixtures": "string", "out": "string", "pairs": "string[]|null"},
+      "example": "python scripts/run_eval.py --fixtures fixtures --out runs/eval"
+    },
+    {
+      "name": "piccompare.compare_documents",
+      "description": "External engine: deterministic document comparison.",
+      "transport": "engine-cli",
+      "status": "external",
+      "input_schema": {"a": "path", "b": "path", "dpi": "integer", "align": "string"},
+      "example": "agent_cli.py compare a.pdf b.pdf --dpi 110 --align none --json"
+    },
+    {
+      "name": "piccompare.get_regions",
+      "description": "External engine: changed regions and page geometry.",
+      "transport": "engine-cli",
+      "status": "external",
+      "input_schema": {"comparison_id": "string", "kind": "string", "limit": "integer"},
+      "example": "agent_cli.py regions --comparison-id c1 --kind all --limit 200 --json"
+    },
+    {
+      "name": "piccompare.get_crop",
+      "description": "External engine: crop artifact for a region.",
+      "transport": "engine-cli",
+      "status": "external",
+      "input_schema": {"comparison_id": "string", "region_id": "string", "view": "string"},
+      "example": "agent_cli.py crop --comparison-id c1 --region-id r1 --view diff --json"
+    },
+    {
+      "name": "piccompare.get_page_image",
+      "description": "External engine: page image artifact.",
+      "transport": "engine-cli",
+      "status": "external",
+      "input_schema": {"comparison_id": "string", "side": "a|b", "page": "integer"},
+      "example": "agent_cli.py page --comparison-id c1 --side a --page 0 --json"
+    },
+    {
+      "name": "piccompare.export_report",
+      "description": "External engine: engine-side report artifact.",
+      "transport": "engine-cli",
+      "status": "external",
+      "input_schema": {"comparison_id": "string", "format": "string"},
+      "example": "agent_cli.py report --comparison-id c1 --format md --json"
+    },
+    {
+      "name": "piccompare.align",
+      "description": "External engine: alignment transform between two pages.",
+      "transport": "engine-cli",
+      "status": "external",
+      "input_schema": {"a": "path", "b": "path", "page_a": "integer", "page_b": "integer"},
+      "example": "agent_cli.py align a.pdf b.pdf --page-a 0 --page-b 0 --method ecc --json"
+    }
+  ]
+}
