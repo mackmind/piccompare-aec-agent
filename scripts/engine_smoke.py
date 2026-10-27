@@ -14,6 +14,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import subprocess
 from collections.abc import Callable
 from datetime import UTC, datetime
 from pathlib import Path
@@ -28,6 +29,32 @@ GIB = 1024**3
 
 def _iso_now() -> str:
     return datetime.now(UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+
+
+def _git_state(tree: Path) -> dict[str, object]:
+    """Bind the receipt to the tree state; an absent repo is recorded as null."""
+    try:
+        head = subprocess.run(
+            ["git", "-C", str(tree), "rev-parse", "--short=7", "HEAD"],
+            capture_output=True,
+            text=True,
+            timeout=15,
+            check=False,
+        )
+        dirty = subprocess.run(
+            ["git", "-C", str(tree), "status", "--porcelain"],
+            capture_output=True,
+            text=True,
+            timeout=30,
+            check=False,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return {"head": None, "dirty": None}
+    head_text = head.stdout.strip() if head.returncode == 0 else ""
+    return {
+        "head": head_text or None,
+        "dirty": bool(dirty.stdout.strip()) if dirty.returncode == 0 else None,
+    }
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -65,6 +92,7 @@ def main(argv: list[str] | None = None) -> int:
             "python": str(ref.python),
             "cli": str(ref.cli),
             "source": ref.source,
+            **_git_state(ref.tree),
         },
         "pinned_available_bytes": pinned_bytes or None,
         "fixture": str(Path(args.fixture)),

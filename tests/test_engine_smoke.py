@@ -37,6 +37,7 @@ def test_engine_smoke_against_named_tree(tmp_path: Path) -> None:
     receipt = json.loads((out / "receipt.json").read_text(encoding="utf-8"))
     assert receipt["result"] == "pass"
     assert receipt["engine"]["tree"] == Path(tree).name
+    assert "head" in receipt["engine"]
     assert [step["command"] for step in receipt["steps"]] == [
         "capabilities",
         "compare",
