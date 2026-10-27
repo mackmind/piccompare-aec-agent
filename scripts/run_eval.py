@@ -6,12 +6,16 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import sys
 from pathlib import Path
 from typing import Any
 
+from aec.live import run_pair_live
+from aec.meta import MetaClient
 from aec.models import Element, Finding
 from aec.pipeline import PairResult, run_pair
+from aec.sam import SamClient
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
@@ -103,22 +107,45 @@ def _score_pair(result: PairResult, truth: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+class LiveCredentialsMissing(RuntimeError):
+    pass
+
+
 def run_eval(
     fixtures: Path,
     out_dir: Path,
     selected: list[str] | None = None,
+    *,
+    live: bool = False,
 ) -> dict[str, Any]:
     pair_dirs = sorted(
         path for path in (fixtures / "aec").iterdir() if path.is_dir()
     )
     if selected:
         pair_dirs = [path for path in pair_dirs if path.name in selected]
+    sam_client: SamClient | None = None
+    meta_client: MetaClient | None = None
+    if live:
+        api_key = os.environ.get("META_API_KEY", "")
+        meta_model = os.environ.get("META_MODEL_ID", "")
+        sam_model = os.environ.get("META_SAM_MODEL_ID", "sam-3.1")
+        if not api_key or not meta_model:
+            raise LiveCredentialsMissing(
+                "META_API_KEY and META_MODEL_ID are required for --live"
+            )
+        sam_client = SamClient(api_key=api_key, model_id=sam_model)
+        meta_client = MetaClient(api_key=api_key, model_id=meta_model)
     records: list[dict[str, Any]] = []
     for pair_dir in pair_dirs:
         truth = json.loads(
             (pair_dir / "ground_truth.json").read_text(encoding="utf-8")
         )
-        result = run_pair(pair_dir, out_dir / pair_dir.name)
+        if live and sam_client is not None and meta_client is not None:
+            result = run_pair_live(
+                pair_dir, sam_client, meta_client, out_dir / pair_dir.name
+            )
+        else:
+            result = run_pair(pair_dir, out_dir / pair_dir.name)
         records.append(_score_pair(result, truth))
     totals = {
         "pairs": len(records),
@@ -141,13 +168,18 @@ def run_eval(
     }
     metrics = {
         "schema": "piccompare-aec-eval/1.0",
-        "mode": "offline_deterministic",
+        "mode": "live_meta" if live else "offline_deterministic",
         "fixtures": str(fixtures),
         "provider": {
-            "name": "offline_deterministic",
-            "model": None,
-            "network": False,
-            "meta_api_calls": 0,
+            "name": "live_meta" if live else "offline_deterministic",
+            "model": (
+                os.environ.get("META_MODEL_ID") if live else None
+            ),
+            "sam_model": (
+                os.environ.get("META_SAM_MODEL_ID", "sam-3.1") if live else None
+            ),
+            "network": bool(live),
+            "meta_api_calls": meta_client.calls if live and meta_client else 0,
             "fallback_used": False,
         },
         "pairs": records,
@@ -188,8 +220,15 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--fixtures", default=str(REPO_ROOT / "fixtures"))
     parser.add_argument("--out", default=str(REPO_ROOT / "runs" / "eval"))
     parser.add_argument("--pairs", nargs="*")
+    parser.add_argument("--live", action="store_true")
     args = parser.parse_args(argv)
-    metrics = run_eval(Path(args.fixtures), Path(args.out), args.pairs)
+    try:
+        metrics = run_eval(
+            Path(args.fixtures), Path(args.out), args.pairs, live=args.live
+        )
+    except LiveCredentialsMissing as error:
+        print(f"MISSING CREDENTIALS: {error}; no request made")
+        return 2
     totals = metrics["totals"]
     print(
         f"offline deterministic: {totals['pairs_passed']}/{totals['pairs']} pairs; "

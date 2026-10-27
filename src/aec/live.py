@@ -69,6 +69,8 @@ def run_pair_live(
     scale = _scale(config)
     a_result = sam_client.segment((directory / "a.png").read_bytes(), prompt, page.page)
     b_result = sam_client.segment((directory / "b.png").read_bytes(), prompt, page.page)
+    meta_calls_start = meta_client.calls
+    meta_result_before = meta_client.last_result
     elements_a = build_elements(
         live_objects(a_result, page, plan.pair_id, "a"), scale, plan.pair_id
     )
@@ -104,12 +106,23 @@ def run_pair_live(
     findings = Critic(meta_client).verify(
         candidates, measurements, matches, evidence, plan
     )
+    meta_calls = meta_client.calls - meta_calls_start
+    latest_result = (
+        meta_client.last_result
+        if meta_client.last_result is not meta_result_before
+        else None
+    )
+    latest_usage = latest_result.usage if latest_result else {}
+    evidence["receipts"]["meta"] = {
+        "model": meta_client.model_id,
+        "calls": meta_calls,
+        "usage": latest_usage or None,
+    }
     verified = [finding for finding in findings if finding.status == "verified"]
     rejected = [finding for finding in findings if finding.status == "rejected"]
     not_compared = [
         finding for finding in findings if finding.status == "not_compared"
     ]
-    latest_usage = meta_client.last_result.usage if meta_client.last_result else {}
     report = build_report(
         engine={"name": "external", "mode": "live_meta"},
         inputs={"a": "a.png", "b": "b.png"},
@@ -130,7 +143,7 @@ def run_pair_live(
             "meta_model": meta_client.model_id,
             "model": meta_client.model_id,
             "network": True,
-            "meta_api_calls": meta_client.calls,
+            "meta_api_calls": meta_calls,
             "sam_calls": a_result.calls + b_result.calls,
             "sam_usage": {"a": a_result.usage, "b": b_result.usage},
             "meta_usage": latest_usage,

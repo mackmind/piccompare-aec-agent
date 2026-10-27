@@ -44,3 +44,25 @@ def test_pair_report_verifies_with_inputs(tmp_path) -> None:
     assert verify(result.report_path, inputs_dir=fixture).ok
     assert not result.not_compared
     assert result.verified
+
+
+def test_live_eval_fails_closed_without_credentials(tmp_path, monkeypatch) -> None:
+    monkeypatch.delenv("META_API_KEY", raising=False)
+    monkeypatch.delenv("META_MODEL_ID", raising=False)
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(ROOT / "scripts" / "run_eval.py"),
+            "--fixtures",
+            str(ROOT / "fixtures"),
+            "--out",
+            str(tmp_path / "should-not-exist"),
+            "--live",
+        ],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 2
+    assert "MISSING CREDENTIALS" in result.stdout
+    assert not (tmp_path / "should-not-exist").exists()
