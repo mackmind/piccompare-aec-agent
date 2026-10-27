@@ -26,6 +26,13 @@ tests will live as they are built during the event.
 - It does not grant any licence to the PicCompare engine or its commercial
   components.
 
+## Development gates
+
+The public repository runs `pytest`, `ruff`, `mypy`, the repository boundary
+check (`scripts/check_boundary.py`) and the bootstrap acceptance check
+(`scripts/accept_aec.py --offline`) in CI. The boundary check rejects engine
+imports, engine markers, secrets and local machine manifests.
+
 ## Licence
 
 MIT for this repository only. See [LICENSE](LICENSE) and [NOTICE](NOTICE). The

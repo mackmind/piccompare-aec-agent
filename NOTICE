@@ -7,5 +7,12 @@ customer, employer or confidential document are NOT included and are NOT
 licensed under this repository's MIT licence. The engine is a separate
 proprietary product.
 
-No third-party asset is included in this scaffold. Any dependency added later
-retains its own licence and will be listed in the repository metadata.
+Third-party Python packages retain their own licences:
+- numpy: BSD-3-Clause
+- shapely: BSD-3-Clause
+- opencv-python-headless: Apache-2.0
+- ezdxf: MIT
+- Pillow: MIT-CMU
+- pydantic: MIT
+
+No third-party asset is included in this scaffold.
