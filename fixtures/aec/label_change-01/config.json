@@ -16,7 +16,7 @@
   "angle_tolerance_deg": 1.0,
   "material_area_delta_m2": 0.1,
   "match_iou_threshold": 0.5,
-  "match_centroid_tolerance_px": 8.0,
+  "match_centroid_tolerance_px": 50.0,
   "match_area_ratio_tolerance": 0.25,
   "variant": "label_change"
 }

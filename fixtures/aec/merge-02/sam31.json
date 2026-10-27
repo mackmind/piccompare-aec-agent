@@ -8,6 +8,8 @@
           "page": 0,
           "objects": [
             {
+              "room_id": "R1",
+              "room_label": "ROOM A",
               "label": "room",
               "bbox": [
                 100.0,
@@ -40,6 +42,8 @@
               "score": 0.95
             },
             {
+              "room_id": "R2",
+              "room_label": "ROOM B",
               "label": "room",
               "bbox": [
                 600.0,
@@ -72,6 +76,8 @@
               "score": 0.95
             },
             {
+              "room_id": "R3",
+              "room_label": "ROOM C",
               "label": "room",
               "bbox": [
                 100.0,
@@ -104,6 +110,8 @@
               "score": 0.95
             },
             {
+              "room_id": "R4",
+              "room_label": "ROOM D",
               "label": "room",
               "bbox": [
                 600.0,
@@ -145,6 +153,8 @@
           "page": 0,
           "objects": [
             {
+              "room_id": "R1",
+              "room_label": "ROOM A",
               "label": "room",
               "bbox": [
                 100.0,
@@ -177,6 +187,8 @@
               "score": 0.95
             },
             {
+              "room_id": "R2",
+              "room_label": "ROOM B",
               "label": "room",
               "bbox": [
                 600.0,
@@ -209,6 +221,8 @@
               "score": 0.95
             },
             {
+              "room_id": "M2",
+              "room_label": "ROOM C+D",
               "label": "room",
               "bbox": [
                 100.0,

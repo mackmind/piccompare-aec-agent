@@ -61,6 +61,8 @@ def object_from_payload(
     score = max(0.0, min(1.0, score))
     return SamObject(
         object_id=f"{fixture}:{side}:{page.page}:{label}:{index}",
+        room_id=str(raw["room_id"]) if raw.get("room_id") else None,
+        room_label=str(raw["room_label"]) if raw.get("room_label") else None,
         page=page.page,
         label=label,  # type: ignore[arg-type]
         bbox_px=_bbox(raw, polygon),

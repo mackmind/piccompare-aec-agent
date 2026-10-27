@@ -63,4 +63,4 @@ def test_build_elements_converts_area() -> None:
     elements = build_elements(objects, scale, "p1")
     assert elements[0].area_px2 == 100
     assert elements[0].area_m2 == 1.0
-    assert elements[0].element_id == "p1:0:room:0"
+    assert elements[0].element_id == "o1"

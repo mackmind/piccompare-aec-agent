@@ -148,3 +148,49 @@ class Critic:
             if c.finding_id in deterministic
         ]
         return forced + reviewed
+
+
+class DeterministicCritic:
+    """Offline critic for fixture evaluation; no model or network call."""
+
+    def verify(
+        self,
+        candidates: list[Finding],
+        measurements: list[MeasurementDelta],
+        matches: list[ElementMatch],
+        evidence: dict[str, Any],
+        spec: PlanSpec,
+    ) -> list[Finding]:
+        result: list[Finding] = []
+        for candidate in candidates:
+            if (
+                candidate.change_type in {"room_split", "room_merged"}
+                or candidate.status == "not_compared"
+            ):
+                result.append(
+                    candidate.model_copy(
+                        update={
+                            "status": "not_compared",
+                            "reasons": [*candidate.reasons, "definition mismatch"],
+                        }
+                    )
+                )
+            elif not candidate.evidence_refs:
+                result.append(
+                    candidate.model_copy(
+                        update={
+                            "status": "rejected",
+                            "reasons": [*candidate.reasons, "no evidence references"],
+                        }
+                    )
+                )
+            else:
+                result.append(
+                    candidate.model_copy(
+                        update={
+                            "status": "verified",
+                            "reasons": [*candidate.reasons, "deterministic offline critic"],
+                        }
+                    )
+                )
+        return result

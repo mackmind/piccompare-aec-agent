@@ -15,16 +15,17 @@ def build_elements(
     fixture: str,
 ) -> list[Element]:
     elements: list[Element] = []
-    for index, obj in enumerate(objects):
+    for obj in objects:
         polygon = [(float(x), float(y)) for x, y in obj.polygon_px]
         area_px = polygon_area_px(polygon)
         centroid = centroid_px(polygon)
         elements.append(
             Element(
-                element_id=f"{fixture}:{obj.page}:{obj.label}:{index}",
+                element_id=obj.object_id,
+                room_id=obj.room_id,
                 page=obj.page,
                 element_type=obj.label,
-                label=obj.label,
+                label=obj.room_label or obj.label,
                 polygon_px=[list(point) for point in polygon],
                 area_px2=area_px,
                 area_m2=scale.to_real_area(area_px),

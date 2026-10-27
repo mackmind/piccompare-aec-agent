@@ -45,6 +45,8 @@ class PageGeometry(StrictModel):
 
 class SamObject(StrictModel):
     object_id: str
+    room_id: str | None = None
+    room_label: str | None = None
     page: int = Field(ge=0)
     label: Literal["room", "space", "wall", "column", "stair", "unknown"]
     bbox_px: list[float] = Field(min_length=4, max_length=4)
@@ -55,6 +57,7 @@ class SamObject(StrictModel):
 
 class Element(StrictModel):
     element_id: str
+    room_id: str | None = None
     page: int = Field(ge=0)
     element_type: str
     label: str

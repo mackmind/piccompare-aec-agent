@@ -218,6 +218,8 @@ def _sam_object(room: dict[str, Any]) -> dict[str, Any]:
     xs = [float(x) for x, _ in room["polygon"]]
     ys = [float(y) for _, y in room["polygon"]]
     return {
+        "room_id": room["room_id"],
+        "room_label": room["label"],
         "label": "room",
         "bbox": [min(xs), min(ys), max(xs), max(ys)],
         "polygon": [[float(x), float(y)] for x, y in room["polygon"]],
@@ -302,7 +304,7 @@ def make_plan_pair(
         "angle_tolerance_deg": 1.0,
         "material_area_delta_m2": 0.1,
         "match_iou_threshold": 0.5,
-        "match_centroid_tolerance_px": 8.0,
+        "match_centroid_tolerance_px": 50.0,
         "match_area_ratio_tolerance": 0.25,
         "variant": variant,
     }
