@@ -33,17 +33,24 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--phase")
     parser.add_argument("--full", action="store_true")
     parser.add_argument("--list", action="store_true")
+    parser.add_argument("--engine-tree", action="append", default=[])
+    parser.add_argument("--pin-available-gib", type=float, default=0.0)
     args = parser.parse_args(argv)
     if args.list:
         print("\n".join(sorted(TASKS, key=lambda value: int(value[1:]))))
         return 0
 
+    accept = [PY, "scripts/accept_aec.py", "--offline"]
+    for tree in args.engine_tree:
+        accept += ["--engine-tree", tree]
+    if args.pin_available_gib:
+        accept += ["--pin-available-gib", str(args.pin_available_gib)]
     commands = [
         [PY, "-m", "pytest", "--cov=src/aec", "--cov-fail-under=85", "-q"],
         [PY, "-m", "ruff", "check", "."],
         [PY, "-m", "mypy", "src/aec"],
         [PY, "scripts/check_boundary.py"],
-        [PY, "scripts/accept_aec.py", "--offline"],
+        accept,
     ]
     results = [run(command) for command in commands]
     receipt = {

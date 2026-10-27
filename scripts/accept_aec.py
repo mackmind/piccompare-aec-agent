@@ -20,7 +20,14 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--offline", action="store_true")
     parser.add_argument("--full", action="store_true")
     parser.add_argument("--task")
-    parser.parse_args(argv)
+    parser.add_argument(
+        "--engine-tree",
+        action="append",
+        default=[],
+        help="also smoke this local PicCompare tree (repeatable; needs the app on disk)",
+    )
+    parser.add_argument("--pin-available-gib", type=float, default=0.0)
+    args = parser.parse_args(argv)
 
     checks = [[sys.executable, "scripts/check_boundary.py"]]
     fixtures_verifier = ROOT / "scripts" / "verify_fixtures.py"
@@ -52,6 +59,19 @@ def main(argv: list[str] | None = None) -> int:
                     "--inputs-dir",
                     "fixtures/aec/resize-01",
                 ],
+            ]
+        )
+    for tree in args.engine_tree:
+        checks.append(
+            [
+                sys.executable,
+                "scripts/engine_smoke.py",
+                "--engine-tree",
+                tree,
+                "--out",
+                str(ROOT / "runs" / f"engine-smoke-{Path(tree).name}"),
+                "--pin-available-gib",
+                str(args.pin_available_gib),
             ]
         )
     for command in checks:
