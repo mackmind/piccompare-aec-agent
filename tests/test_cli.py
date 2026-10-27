@@ -1,8 +1,12 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
 
 from aec.cli import main
+
+ROOT = Path(__file__).resolve().parent.parent
 
 
 def test_cli_prints_version(capsys) -> None:
@@ -10,3 +14,24 @@ def test_cli_prints_version(capsys) -> None:
         main(["--version"])
     assert error.value.code == 0
     assert "0.1.0" in capsys.readouterr().out
+
+
+def test_cli_measure_and_verify(tmp_path) -> None:
+    fixture = ROOT / "fixtures" / "aec" / "resize-01"
+    assert main(["measure", "--fixture", str(fixture), "--out", str(tmp_path)]) == 0
+    report = tmp_path / "report.json"
+    assert report.is_file()
+    assert main(
+        ["verify", "--report", str(report), "--inputs-dir", str(fixture)]
+    ) == 0
+
+
+def test_cli_export(tmp_path) -> None:
+    fixture = ROOT / "fixtures" / "aec" / "resize-01"
+    assert main(["measure", "--fixture", str(fixture), "--out", str(tmp_path)]) == 0
+    out = tmp_path / "export"
+    assert main(
+        ["export", "--report", str(tmp_path / "report.json"), "--out", str(out)]
+    ) == 0
+    assert (out / "resize-01.svg").is_file()
+    assert (out / "resize-01.dxf").is_file()
