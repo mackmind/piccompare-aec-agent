@@ -14,6 +14,20 @@ by re-pointing the manifest/tree-map or passing an explicit path. The venv name
 comes from `active-pair.json` `venv`. The engine is called through
 `<tree>/src/agent_cli.py`; this repository never imports engine modules.
 
+## Read-only engine smoke
+
+`scripts/engine_smoke.py` calls `capabilities`, `compare` and `regions` through
+the documented CLI and writes a receipt bound to the tree head and dirtiness. It
+passed against the 0.54H demo edition and the revised 0.55 commercial tree
+(`compare` complete, pages 1/1, 12 regions).
+
+The engine admits raster work against free RAM minus a headroom of
+`max(512 MiB, total/4)`. On a loaded machine the allowance reaches zero and the
+engine refuses correctly with `RESOURCE_LIMIT`; `--pin-available-gib` sets the
+engine's documented `PICCOMPARE_AVAILABLE_BYTES` seam for that run, and the
+receipt records the pinned value. CI does not run this check because the engine
+is not in this repository.
+
 ## Live Meta/SAM credentials
 
 The clients read credentials only from the shell environment:

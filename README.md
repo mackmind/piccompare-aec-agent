@@ -26,6 +26,9 @@ The **offline deterministic pipeline is implemented and tested**:
   4 definitions it cannot compare.
 - Report replay verifies clean reports and fails tampered reports.
 - SVG/DXF measured overlays, batch triage and agent skills are available.
+- A read-only engine smoke (`capabilities`/`compare`/`regions`) passes against
+  the 0.54H demo edition and the revised 0.55 commercial tree; each receipt is
+  bound to the tree head. The engine remains an external dependency.
 - **Live SAM 3.1 and Muse Spark calls are not yet exercised.** The clients and
   seams exist; live runs need credentials and are marked blocked. This is not a
   live-model submission yet.
@@ -40,6 +43,8 @@ py -3.13 -m venv .venv-aec
 .venv-aec/Scripts/python.exe -m aec measure --fixture fixtures/aec/resize-01 --out runs/measure/resize-01
 .venv-aec/Scripts/python.exe -m aec verify --report runs/measure/resize-01/report.json --inputs-dir fixtures/aec/resize-01
 .venv-aec/Scripts/python.exe -m aec export --report runs/measure/resize-01/report.json --out runs/export
+# needs a local PicCompare tree; not part of CI
+.venv-aec/Scripts/python.exe scripts/engine_smoke.py --engine-tree <tree> --out runs/engine-smoke
 ```
 
 Inspect the committed sample evidence:
