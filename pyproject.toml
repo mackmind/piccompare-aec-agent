@@ -56,6 +56,10 @@ python_version = "3.11"
 strict = true
 files = ["src/aec"]
 
+[[tool.mypy.overrides]]
+module = ["shapely.*"]
+ignore_missing_imports = true
+
 [tool.coverage.run]
 source = ["src/aec"]
 omit = ["src/aec/cli.py"]
