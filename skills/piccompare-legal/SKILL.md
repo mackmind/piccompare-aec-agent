@@ -1,6 +1,6 @@
 ---
 name: piccompare-legal
-description: DRAFT — legal exhibit verification using the PicCompare AEC measurement workflow. Not yet backed by legal fixtures or a live model.
+description: DRAFT — legal exhibit verification using the PicCompare AEC (architecture, engineering and construction) measurement workflow. Not yet backed by legal test examples or a live model.
 ---
 
 # PicCompare legal exhibit verification (draft)
@@ -14,25 +14,26 @@ verification claim.
 
 ## Prerequisites
 
-- The implemented `piccompare-aec` skill and its CLI.
-- Synthetic legal fixture pairs with explicit ground truth. No customer,
+- The implemented `piccompare-aec` skill and its command-line tool.
+- Generated legal test pairs with explicit known correct answers. No customer,
   confidential or employer documents.
 
 ## Workflow
 
-1. Use `python -m aec measure` only after legal fixtures and the corresponding
-   comparison workflow are implemented.
-2. Until then, use the AEC skill on synthetic floor plans and label the result
+1. Use `python -m aec measure` only after legal test examples and the
+   corresponding comparison workflow are implemented.
+2. Until then, use the AEC skill on generated floor plans and label the result
    as a draft.
 3. Keep every finding tied to evidence; never claim a legal conclusion.
 
 ## Evidence
 
-The same hashed report contract is the target: input hashes, element/crop
-references, model receipts and a replay digest. No “signed” claim.
+The same fingerprinted (hashed) report contract is the target: input fingerprints,
+element and crop references, model run records and a replay digest (a fingerprint
+of the whole report). No "signed" claim.
 
 ## Limitations
 
-- Legal fixtures are not implemented in the public repo.
+- Legal test examples are not implemented in the public repository.
 - No legal advice, authentication or court-admissibility claim.
 - This skill is a draft for a future integration, not a shipped capability.

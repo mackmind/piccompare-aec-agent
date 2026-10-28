@@ -1,6 +1,8 @@
-PicCompare AEC Agent — public scaffold.
+PicCompare AEC Agent (architecture, engineering and construction) — public
+integration repository.
 
-This repository is MIT-licensed. The MIT licence covers this repository only.
+This repository is MIT-licensed (a permissive open-source licence). The MIT
+licence covers this repository only.
 
 The PicCompare engine, its internal design, its commercial components and any
 customer, employer or confidential document are NOT included and are NOT
@@ -15,6 +17,7 @@ Third-party Python packages retain their own licences:
 - Pillow: MIT-CMU
 - pydantic: MIT
 - meta-sam-parser: SAM License (optional `[live]` extra, not redistributed here;
-  used only to decode SAM mask payloads when running live)
+  used only to decode Segment Anything Model (SAM) mask payloads when running
+  live)
 
-No third-party asset is included in this scaffold.
+No third-party asset is included in this repository.

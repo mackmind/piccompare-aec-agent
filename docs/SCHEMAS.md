@@ -1,13 +1,22 @@
-# AEC public contracts
+# Public report contracts
 
-All models are pydantic v2 models with `extra="forbid"`. JSON reports are
-ASCII-only; Markdown is UTF-8.
+This page is for programmers who read or write the report files. It lists every
+field, its type and its allowed values. The report is a JSON document (a plain-text
+data format) validated with pydantic (a Python data-validation library); unknown
+fields are rejected. JSON files use ASCII characters only; Markdown files use
+UTF-8, the standard text encoding for most languages.
+
+Field-name terms: `px` means pixels; `m2` means square metres; `deg` means degrees;
+`IoU` means intersection over union, an overlap score from 0 to 1 (1.0 is a perfect
+match); `bbox` means bounding box, the smallest rectangle around an object;
+`polygon` means an outline made of straight edges; `enum` means a fixed list of
+allowed values. ASCII means plain English characters, without accents or symbols.
 
 ## PlanSpec
 
 | Field | Type | Invariant |
 |---|---|---|
-| `pair_id` | string | stable fixture id |
+| `pair_id` | string | stable test-example id |
 | `units` | `m` or `mm` | real-world units |
 | `px_per_unit` | float | > 0 |
 | `element_types` | list | room/space/wall/column/stair |
@@ -62,5 +71,5 @@ ASCII-only; Markdown is UTF-8.
 `measurements`, `findings`, `rejected`, `not_compared`, `evidence`, `usage`,
 `limitations`, `digest`.
 
-The report writer must reject an altered demo notice; a clean report is
-hashed and replayable, never “signed”.
+The report writer must reject an altered demo notice. A clean report is
+fingerprinted (hashed) and replayable, never "signed".

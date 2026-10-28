@@ -1,10 +1,10 @@
 {
   "schema": "piccompare-aec-capabilities/1.0",
-  "note": "CLI and external-engine capabilities. The public repo does not ship an MCP server; this manifest is the stable tool index for a future MCP wrapper.",
+  "note": "Command-line and external-engine capabilities. This public repository does not ship an AI-assistant tool server; this manifest is the stable index of the commands a future wrapper would expose. MCP means Model Context Protocol, a standard way for AI assistants to discover tools.",
   "tools": [
     {
       "name": "aec.measure",
-      "description": "Measure one synthetic floor-plan pair and write a hashed report.",
+      "description": "Measure one generated floor-plan pair and write a fingerprinted (hashed) report.",
       "transport": "cli",
       "status": "available",
       "input_schema": {"fixture": "string", "out": "string|null"},
@@ -12,7 +12,7 @@
     },
     {
       "name": "aec.verify",
-      "description": "Verify report digest, input hashes, element hashes and measurement hashes.",
+      "description": "Verify the report fingerprint, input fingerprints, element fingerprints and measurement fingerprints.",
       "transport": "cli",
       "status": "available",
       "input_schema": {"report": "string", "inputs_dir": "string|null"},
@@ -20,7 +20,7 @@
     },
     {
       "name": "aec.export",
-      "description": "Export a measured plan to SVG and/or DXF.",
+      "description": "Export a measured plan to SVG (scalable vector graphics) and/or DXF (a standard computer-aided design exchange format).",
       "transport": "cli",
       "status": "available",
       "input_schema": {"report": "string", "format": "svg|dxf|both", "out": "string"},
@@ -28,7 +28,7 @@
     },
     {
       "name": "aec.engine_info",
-      "description": "Resolve an external PicCompare engine tree by manifest or explicit path.",
+      "description": "Find a local PicCompare build from a configuration file or an explicit folder path.",
       "transport": "cli",
       "status": "available",
       "input_schema": {"workspace_root": "string|null", "engine_tree": "string|null"},
@@ -36,7 +36,7 @@
     },
     {
       "name": "aec.batch",
-      "description": "Aggregate per-pair reports into a materiality-sorted batch summary.",
+      "description": "Combine per-pair reports into one summary sorted by how much each change matters.",
       "transport": "cli",
       "status": "available",
       "input_schema": {"reports": "string", "out": "string"},
@@ -44,7 +44,7 @@
     },
     {
       "name": "aec.eval",
-      "description": "Run the fixture evaluation, offline (deterministic) or live (Meta API).",
+      "description": "Run the test-example evaluation, offline (repeatable, no model call) or live (Meta's model service).",
       "transport": "cli",
       "status": "available",
       "input_schema": {"fixtures": "string", "out": "string", "pairs": "string[]|null", "live": "boolean"},
@@ -52,7 +52,7 @@
     },
     {
       "name": "piccompare.compare_documents",
-      "description": "External engine: deterministic document comparison.",
+      "description": "External engine: repeatable document comparison.",
       "transport": "engine-cli",
       "status": "external",
       "input_schema": {"a": "path", "b": "path", "dpi": "integer", "align": "string"},
@@ -60,7 +60,7 @@
     },
     {
       "name": "piccompare.get_regions",
-      "description": "External engine: changed regions and page geometry.",
+      "description": "External engine: changed regions and page size and position.",
       "transport": "engine-cli",
       "status": "external",
       "input_schema": {"comparison_id": "string", "kind": "string", "limit": "integer"},
@@ -68,7 +68,7 @@
     },
     {
       "name": "piccompare.get_crop",
-      "description": "External engine: crop artifact for a region.",
+      "description": "External engine: cropped image file for a changed region.",
       "transport": "engine-cli",
       "status": "external",
       "input_schema": {"comparison_id": "string", "region_id": "string", "view": "string"},
@@ -76,7 +76,7 @@
     },
     {
       "name": "piccompare.get_page_image",
-      "description": "External engine: page image artifact.",
+      "description": "External engine: page image file.",
       "transport": "engine-cli",
       "status": "external",
       "input_schema": {"comparison_id": "string", "side": "a|b", "page": "integer"},
@@ -84,7 +84,7 @@
     },
     {
       "name": "piccompare.export_report",
-      "description": "External engine: engine-side report artifact.",
+      "description": "External engine: engine-generated report file.",
       "transport": "engine-cli",
       "status": "external",
       "input_schema": {"comparison_id": "string", "format": "string"},
@@ -92,7 +92,7 @@
     },
     {
       "name": "piccompare.align",
-      "description": "External engine: alignment transform between two pages.",
+      "description": "External engine: alignment mapping between two pages.",
       "transport": "engine-cli",
       "status": "external",
       "input_schema": {"a": "path", "b": "path", "page_a": "integer", "page_b": "integer"},

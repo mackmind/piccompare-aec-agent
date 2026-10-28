@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "piccompare-aec-agent"
 version = "0.1.0"
-description = "AEC measurement verification agent for precise floor-plan documents."
+description = "Floor-plan revision checker for the architecture, engineering and construction industry."
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "MIT" }
@@ -27,7 +27,8 @@ dev = [
   "mypy>=1.11,<2",
 ]
 # Mask decoding only. Meta's parser carries the SAM License (not MIT), so it is
-# an OPTIONAL extra and never a required runtime dependency of this MIT repo.
+# an OPTIONAL extra and never a required runtime dependency of this MIT-licensed
+# repository (MIT is a permissive open-source licence).
 # Without it a SAM record still yields its box as a rectangle polygon.
 live = [
   "meta-sam-parser>=0.1,<1",

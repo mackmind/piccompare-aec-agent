@@ -1,9 +1,9 @@
 ---
 name: piccompare-print
-description: DRAFT — print/barcode revision verification using the PicCompare AEC measurement workflow. Not yet backed by print fixtures or a live model.
+description: DRAFT — print and barcode revision verification using the PicCompare AEC (architecture, engineering and construction) measurement workflow. Not yet backed by print test examples or a live model.
 ---
 
-# PicCompare print/barcode verification (draft)
+# PicCompare print and barcode verification (draft)
 
 ## When to use
 
@@ -13,24 +13,26 @@ implements the AEC measurement workflow only.
 
 ## Prerequisites
 
-- The implemented `piccompare-aec` skill and its CLI.
-- Synthetic print fixtures with explicit ground truth; no customer artwork.
+- The implemented `piccompare-aec` skill and its command-line tool.
+- Generated print test examples with explicit known correct answers; no customer
+  artwork.
 
 ## Workflow
 
-1. Use `python -m aec measure` only after print fixtures and the barcode/
+1. Use `python -m aec measure` only after print test examples and the barcode and
    title-block checks are implemented.
-2. Until then, use the AEC skill on synthetic plans and label the result as a
+2. Until then, use the AEC skill on generated plans and label the result as a
    draft.
 3. Never claim print production readiness or barcode certification.
 
 ## Evidence
 
-Target the same hashed report contract: measured element evidence, input hashes,
-model receipts and replay digest. No “signed” claim.
+Target the same fingerprinted (hashed) report contract: measured element evidence,
+input fingerprints, model run records and a replay digest (a fingerprint of the
+whole report). No "signed" claim.
 
 ## Limitations
 
-- Print fixtures and barcode/title-block checks are not implemented publicly.
-- No production, certification or color-accuracy claim.
+- Print test examples and barcode/title-block checks are not implemented publicly.
+- No production, certification or colour-accuracy claim.
 - This skill is a draft for a future integration, not a shipped capability.
