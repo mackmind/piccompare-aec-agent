@@ -113,7 +113,10 @@ definition guard failed.
   0.92–0.96.
 - **One live pair** (`resize-01`, proposed regions): 5 verified findings, 0 not
   compared, 0 rejected, report digest `f6965242…`, receipts `live_meta`,
-  `sam-3.1`, `muse-spark-1.3-contributor`, 55 SAM calls.
+  `sam-3.1`, `muse-spark-1.3-contributor`, 55 SAM calls. The live report
+  **verifies** (`python -m aec verify --report runs/live/resize-01/report.json
+  --inputs-dir fixtures/aec/resize-01` → PASS), so the hashed-and-replayable
+  claim covers live evidence too.
 - **The live eval scores 8 of 12 pairs** (`run_eval.py --live --fixtures fixtures`,
   2026-10-28): identical, noise, merge-01/02 (refusals), resize-02, split-02 (refusal) and
   wall_move-01/02 pass. The four misses are the known limits below, not tuning:
