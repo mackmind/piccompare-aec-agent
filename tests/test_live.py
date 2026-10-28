@@ -86,3 +86,23 @@ def test_live_path_refuses_split_without_meta_call(tmp_path) -> None:
     assert result.report.usage["meta_api_calls"] == 0
     assert result.report.evidence["receipts"]["meta"]["calls"] == 0
     assert verify(result.report_path, inputs_dir=fixture).ok
+
+
+def test_live_plan_floors_the_area_delta_and_leaves_the_inert_field_alone():
+    from aec.live import (
+        MASK_AREA_NOISE_M2,
+        MASK_PRECISION_MULTIPLIER,
+        _live_plan,
+    )
+    from aec.pipeline import plan_from_config
+
+    config = json.loads(
+        (ROOT / "fixtures" / "aec" / "resize-01" / "config.json").read_text())
+    plan = plan_from_config(config)
+    live = _live_plan(plan)
+    assert live.dimension_tolerance_px == plan.dimension_tolerance_px * MASK_PRECISION_MULTIPLIER
+    assert live.angle_tolerance_deg == plan.angle_tolerance_deg * MASK_PRECISION_MULTIPLIER
+    assert live.material_area_delta_m2 == max(plan.material_area_delta_m2, MASK_AREA_NOISE_M2)
+    # The comparison never reads area_tolerance_m2, so widening it would only
+    # advertise a number with no effect.
+    assert live.area_tolerance_m2 == plan.area_tolerance_m2

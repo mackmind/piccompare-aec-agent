@@ -10,7 +10,7 @@ import numpy as np
 
 from aec.live import segment_proposed_regions
 from aec.propose import _iou, propose_boxes
-from aec.sam import SamResult
+from aec.sam import SamError, SamResult
 
 FIXTURE = Path(__file__).resolve().parent.parent / "fixtures" / "aec" / "resize-01"
 PAGE_AREA = 1600 * 1200
@@ -120,3 +120,30 @@ def test_two_halves_that_tile_the_parent_still_drop_it():
     left = (0, 0, 50, 100)
     right = (50, 0, 100, 100)
     assert _drop_parent_boxes([parent, left, right]) == [left, right]
+
+
+def test_one_failing_box_is_counted_and_the_other_rooms_survive():
+    class Flaky:
+        model_id = "sam-3.1"
+        calls_seen = 0
+
+        def segment(self, image: bytes, prompt: str, page: int = 0,
+                    label: str | None = None) -> SamResult:
+            Flaky.calls_seen += 1
+            if Flaky.calls_seen == 2:
+                raise SamError("injected failure")
+            return SamResult(
+                objects=[{"bbox": [0, 0, 10, 10], "label": "room",
+                          "polygon": [[0, 0], [10, 0], [10, 10], [0, 10], [0, 0]],
+                          "score": None, "mask_available": False}],
+                usage={"images_processed": 1},
+                model="sam-3.1", calls=1, latency_ms=1,
+            )
+
+    image = (FIXTURE / "a.png").read_bytes()
+    boxes = propose_boxes(image)
+    assert len(boxes) >= 2
+    result = segment_proposed_regions(Flaky(), image)  # type: ignore[arg-type]
+    assert len(result.objects) == len(boxes) - 1
+    assert result.usage.get("failed_boxes") == 1
+    assert result.calls == len(boxes) - 1
