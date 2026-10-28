@@ -52,9 +52,50 @@ def _match_expected(
     return []
 
 
+def _assign_gt_room_ids(result: PairResult, truth: dict[str, Any]) -> dict[str, str]:
+    """Map live elements to ground-truth room ids by polygon IoU (scoring only).
+
+    SAM supplies no room labels, so the live report cannot name R1/R2. Scoring
+    may use the ground truth, so align the element geometry to the GT room
+    polygons here - never in generation.
+    """
+    from shapely.geometry import Polygon
+
+    rooms = {"a": truth.get("rooms_a") or [], "b": truth.get("rooms_b") or []}
+    assignment: dict[str, str] = {}
+    for side, elements in (("a", result.elements_a), ("b", result.elements_b)):
+        candidates = []
+        for room in rooms[side]:
+            polygon = Polygon(room["polygon_px"])
+            if polygon.is_valid and polygon.area > 0:
+                candidates.append((room["room_id"], polygon))
+        for element in elements:
+            try:
+                element_polygon = Polygon(element.polygon_px)
+            except Exception:  # noqa: BLE001 - a degenerate polygon maps to nothing
+                continue
+            if not element_polygon.is_valid or element_polygon.area <= 0:
+                continue
+            best_id, best_iou = None, 0.0
+            for room_id, room_polygon in candidates:
+                intersection = element_polygon.intersection(room_polygon).area
+                union = element_polygon.union(room_polygon).area
+                iou = intersection / union if union else 0.0
+                if iou > best_iou:
+                    best_id, best_iou = room_id, iou
+            if best_id is not None and best_iou >= 0.5:
+                assignment[element.element_id] = best_id
+    return assignment
+
+
 def _score_pair(result: PairResult, truth: dict[str, Any]) -> dict[str, Any]:
+    alignment = _assign_gt_room_ids(result, truth)
     elements = {
-        element.element_id: element
+        element.element_id: (
+            element.model_copy(update={"room_id": alignment[element.element_id]})
+            if element.element_id in alignment
+            else element
+        )
         for element in [*result.elements_a, *result.elements_b]
     }
     expected = truth.get("expected_findings", [])

@@ -42,8 +42,11 @@ def test_parse_box_record_and_optional_mask():
     objects = parse_output_text(SAMPLE, "room")
     assert len(objects) == 1
     obj = objects[0]
-    # The box is the model's refined box, near the prompted 100,100-500,500.
-    assert obj["bbox"] == [97.0, 97.0, 504.0, 503.0]
+    # The mask polygon sits within a few pixels of the prompted 100,100-500,500
+    # (the contour is simplified to plan-like vertices, so it is not the box).
+    x1, y1, x2, y2 = obj["bbox"]
+    assert abs(x1 - 96) <= 8 and abs(y1 - 97) <= 8
+    assert abs(x2 - 504) <= 8 and abs(y2 - 503) <= 8
     assert obj["label"] == "room"
     assert len(obj["polygon"]) >= 5
     if obj["mask_available"]:

@@ -25,6 +25,9 @@ DEFAULT_BASE = "https://api.meta.ai/v1"
 Transport = Callable[[str, dict[str, str], dict[str, Any], float], dict[str, Any]]
 
 FRAME_RE = re.compile(r"<0f>(\d+)")
+# Mask contours wiggle by a pixel or two along a drawn edge; without this the
+# polygon carries 30+ vertices and every edge/angle delta is noise.
+MASK_SIMPLIFY_PX = 6.0
 RECORD_RE = re.compile(r"<\|box;(?P<box>[^|]*)\|>|<\|mask;(?P<mask>[^|]*)\|>")
 
 
@@ -102,7 +105,7 @@ def _decode_mask(x: int, y: int, height: int, width: int, payload: str,
 
 
 def _polygon_from_mask(canvas: Any,
-                       tolerance_px: float = 1.0) -> list[list[float]] | None:
+                       tolerance_px: float = MASK_SIMPLIFY_PX) -> list[list[float]] | None:
     try:
         from aec.masks import mask_to_polygon
         return [[float(px), float(py)] for px, py in mask_to_polygon(canvas, tolerance_px)]
