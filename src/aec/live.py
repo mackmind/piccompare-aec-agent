@@ -221,7 +221,7 @@ def run_pair_live(
         },
         limitations=[
             "Live SAM masks carry boundary noise; the comparison tolerances are "
-            f"widened {LIVE_NOISE_MULTIPLIER}x and recorded in the report settings.",
+            f"widened {LIVE_NOISE_MULTIPLIER}x and recorded in the usage note.",
             "SAM supplies no room labels; the evaluator aligns live elements to "
             "ground-truth rooms by polygon IoU (scoring only).",
             "Synthetic fixture used for this live-path test only; no real-world claim.",
