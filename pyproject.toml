@@ -26,6 +26,12 @@ dev = [
   "ruff>=0.7,<1",
   "mypy>=1.11,<2",
 ]
+# Mask decoding only. Meta's parser carries the SAM License (not MIT), so it is
+# an OPTIONAL extra and never a required runtime dependency of this MIT repo.
+# Without it a SAM record still yields its box as a rectangle polygon.
+live = [
+  "meta-sam-parser>=0.1,<1",
+]
 
 [project.scripts]
 aec = "aec.cli:main"

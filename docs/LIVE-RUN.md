@@ -50,6 +50,37 @@ Expected: object count, model, calls and latency. Validate the live response
 shape here; if it differs, change only `normalise_response` and the live object
 mapping, never the report contract.
 
+### Verified live shape (2026-10-28)
+
+The endpoint only emits segmentation records on a **stream**: a non-streaming
+request returns one assistant message with empty text and zero tokens. The
+client now sends `stream: true` and `metadata: {"mask_encoding": "one_bit"}`,
+joins the `response.output_text.delta` events and parses the documented token
+grammar:
+
+```
+<0f>1<|box;x1=96;y1=97;x2=504;y2=503;w=1600;h=1200|><|mask;x=0;y=0;data=407,409,!…|>
+```
+
+- `data=` is **height,width**; the mask origin (`x`,`y`) is relative to its box,
+  so the image-space polygon is the decoded contour plus the box origin.
+- Masks are range-coded; decoding uses Meta's `meta-sam-parser` (SAM License,
+  install with `pip install -e .[live]`). Without it the box becomes a
+  rectangle polygon and the object still loads.
+- **Concept prompts do not work on these line-art plans**: `room`, `wall`,
+  `door` and `table` each returned **0 objects** on `resize-01/a` and
+  `identical-01/a` (live, 2026-10-28). A **box prompt** returns a mask whose
+  polygon matches the ground-truth room (ROOM A: box 97,97–504,503 against
+  100,100–500,500, IoU ≈ 0.95). Propose regions from the plan geometry and let
+  SAM produce the masks; do not expect concept segmentation on line art.
+
+```bash
+# Box prompt (region proposed by the caller), live:
+META_API_KEY=... META_SAM_MODEL_ID=... \
+python scripts/smoke_sam.py --fixture fixtures/aec/resize-01 --side a --live \
+  --image fixtures/aec/resize-01/a.png --box 100,100,500,500
+```
+
 ## 4. One live pair
 
 ```bash
