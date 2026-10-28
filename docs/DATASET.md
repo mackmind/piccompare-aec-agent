@@ -33,7 +33,9 @@ Each pair contains:
   (SAM) 3.1 response, for both sides. The offline adapter tests use it.
 
 `fixtures/manifest.json` is global, not per pair: it holds a SHA-256 fingerprint of
-every generated file in all 12 pairs.
+every generated file in all 12 pairs. Text files are fingerprinted with Windows
+line endings normalised, so the manifest verifies the same in a clone and in a
+release download; images are fingerprinted as-is.
 
 ## Scale and units
 
