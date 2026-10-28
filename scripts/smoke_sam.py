@@ -41,7 +41,9 @@ def main(argv: list[str] | None = None) -> int:
             image_width, image_height = Image.open(args.image).size
             x1, y1, x2, y2 = (int(value) for value in args.box.split(","))
             prompt = box_prompt(x1, y1, x2, y2, image_width, image_height)
-        result = SamClient(api_key=api_key, model_id=args.model).segment(
+        base = os.environ.get("META_API_BASE") or "https://api.meta.ai/v1"
+        result = SamClient(api_key=api_key, model_id=args.model,
+                           base_url=base).segment(
             Path(args.image).read_bytes(), prompt
         )
         print(

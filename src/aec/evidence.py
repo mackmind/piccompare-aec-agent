@@ -85,6 +85,10 @@ def verify(report_path: Path, inputs_dir: Path | None = None) -> VerifyResult:
     reasons: list[str] = []
     if data.get("digest") != report_digest(data):
         reasons.append("report digest mismatch")
+    # An empty side is a failed or refused run, not a pass: a verifier that
+    # accepts it would certify exactly the failure mode this tool exists to catch.
+    if not report.elements_a or not report.elements_b:
+        reasons.append("report has no elements on one side (empty or failed run)")
     for name, expected in report.evidence.get("inputs", {}).items():
         if inputs_dir is None:
             reasons.append(f"cannot verify input {name}: no inputs directory")

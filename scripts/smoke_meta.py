@@ -25,7 +25,9 @@ def main(argv: list[str] | None = None) -> int:
     if not api_key or not model_id:
         print("MISSING META_API_KEY or META_MODEL_ID; no request made")
         return 2
-    client = MetaClient(api_key=api_key, model_id=model_id)
+    client = MetaClient(api_key=api_key, model_id=model_id,
+                        base_url=os.environ.get("META_API_BASE")
+                        or "https://api.meta.ai/v1")
     try:
         result = client.chat_json("Return only JSON.", args.prompt, SCHEMA)
     except MetaError as error:

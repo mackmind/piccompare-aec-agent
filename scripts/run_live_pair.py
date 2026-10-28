@@ -28,8 +28,9 @@ def main(argv: list[str] | None = None) -> int:
     if not api_key or not meta_model:
         print("MISSING META_API_KEY or META_MODEL_ID; no request made")
         return 2
-    sam = SamClient(api_key=api_key, model_id=sam_model)
-    meta = MetaClient(api_key=api_key, model_id=meta_model)
+    base = os.environ.get("META_API_BASE") or "https://api.meta.ai/v1"
+    sam = SamClient(api_key=api_key, model_id=sam_model, base_url=base)
+    meta = MetaClient(api_key=api_key, model_id=meta_model, base_url=base)
     result = run_pair_live(
         Path(args.fixture), sam, meta, Path(args.out), args.prompt,
         boxes_from_plan=args.boxes_from_plan,

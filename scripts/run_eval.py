@@ -144,6 +144,7 @@ def _score_pair(result: PairResult, truth: dict[str, Any]) -> dict[str, Any]:
         "baseline_flagged_changes": len(expected),
         "agent_refused_changes": len(expected_not_compared),
         "passed": not missing and not false_positives,
+        "room_alignment": alignment,
         "report": str(result.report_path) if result.report_path else None,
     }
 
@@ -174,8 +175,9 @@ def run_eval(
             raise LiveCredentialsMissing(
                 "META_API_KEY and META_MODEL_ID are required for --live"
             )
-        sam_client = SamClient(api_key=api_key, model_id=sam_model)
-        meta_client = MetaClient(api_key=api_key, model_id=meta_model)
+        base = os.environ.get("META_API_BASE") or "https://api.meta.ai/v1"
+        sam_client = SamClient(api_key=api_key, model_id=sam_model, base_url=base)
+        meta_client = MetaClient(api_key=api_key, model_id=meta_model, base_url=base)
     records: list[dict[str, Any]] = []
     for pair_dir in pair_dirs:
         truth = json.loads(
@@ -208,6 +210,9 @@ def run_eval(
         ),
         "agent_refused_changes": sum(
             record["agent_refused_changes"] for record in records
+        ),
+        "unexpected_not_compared": sum(
+            len(record["unexpected_not_compared"]) for record in records
         ),
     }
     metrics = {
@@ -275,10 +280,11 @@ def main(argv: list[str] | None = None) -> int:
         return 2
     totals = metrics["totals"]
     print(
-        f"offline deterministic: {totals['pairs_passed']}/{totals['pairs']} pairs; "
+        f"{metrics['mode']}: {totals['pairs_passed']}/{totals['pairs']} pairs; "
         f"expected={totals['expected']} matched={totals['matched']} "
         f"not_compared={totals['not_compared_matched']} "
-        f"false_positives={totals['false_positives']} missing={totals['missing']}"
+        f"false_positives={totals['false_positives']} missing={totals['missing']} "
+        f"unexpected_not_compared={totals['unexpected_not_compared']}"
     )
     return 0 if totals["pairs_passed"] == totals["pairs"] else 1
 
