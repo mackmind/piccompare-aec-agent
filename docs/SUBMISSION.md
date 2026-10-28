@@ -11,7 +11,10 @@ Event: Meta Global AI Developer Hackathon, Indie Developer track,
 - [x] Offline pipeline passes 12/12 pairs with 0 false positives.
 - [x] Read-only engine smoke passes on the 0.55H demo edition and the 0.55
       commercial tree; receipts bind the tree head.
-- [ ] Live SAM/Muse receipt: **not yet exercised**.
+- [x] Live SAM/Muse receipt: `sam-3.1` and `muse-spark-1.3-contributor` exercised
+      2026-10-28 (see `runs/live/resize-01/report.json`, `usage.provider = live_meta`).
+      SAM only answers on a stream and needs **box prompts** on line art; concept
+      prompts return no objects.
 - [ ] Final public head with the complete event code: **pending boundary review**.
 - [ ] Video URL: **not yet recorded**.
 - [ ] Portal submission: **not yet filed**.
@@ -25,7 +28,7 @@ Event: Meta Global AI Developer Hackathon, Indie Developer track,
 | Measures room resize/wall move on synthetic plans | Yes, synthetic only | 7 verified findings |
 | Refuses split/merge definitions | Yes | 4 definition mismatches; `not_compared` |
 | Report is hashed/replayable | Yes | `python -m aec verify` |
-| Uses live SAM 3.1 and Muse Spark | **Not yet** | clients exist; no live receipt |
+| Uses live SAM 3.1 and Muse Spark | Yes | `runs/live/resize-01/report.json` (`live_meta`, both model ids, 55 SAM + 1 Muse call); `scripts/smoke_meta.py` and `scripts/smoke_sam.py --live --box` |
 | Faster/cheaper than human review | **No** | no human baseline |
 | Real-world accuracy | **No** | synthetic only |
 | Full CAD | **No** | measured SVG/DXF overlay only |
@@ -56,5 +59,6 @@ python -m aec verify --report runs/eval/resize-01/report.json --inputs-dir fixtu
 python scripts/engine_smoke.py --engine-tree <tree> --out runs/engine-smoke  # local engine only
 ```
 
-The live SAM/Muse receipt and the demo video are not yet available; neither is
-claimed here.
+The demo video is not yet recorded. The live receipts exist (see the checklist); the scored
+evidence is the offline deterministic evaluation, because live masks carry boundary noise and
+no OCR labels are available in this environment.
