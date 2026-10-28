@@ -1,21 +1,19 @@
 #!/usr/bin/env python3
-"""Geometry-only fixture verifier for Task 5.
-
-Task 12 extends this with the generator/verifier pipeline and metrics.
-"""
+"""Geometry-only fixture verifier (manifest hashes, closed polygons, exact areas)."""
 
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 from pathlib import Path
+
+from aec.evidence import sha256_content
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
 
 def _sha256(path: Path) -> str:
-    return hashlib.sha256(path.read_bytes()).hexdigest()
+    return sha256_content(path)
 
 
 def _area(polygon: list[list[float]]) -> float:

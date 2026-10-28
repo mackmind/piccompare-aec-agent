@@ -7,10 +7,11 @@ names. Task 5 adds fixture-manifest count and hash checks.
 
 from __future__ import annotations
 
-import hashlib
 import json
 import re
 from pathlib import Path
+
+from aec.evidence import sha256_content
 
 ROOT = Path(__file__).resolve().parent.parent
 SKIP_PARTS = {
@@ -121,7 +122,7 @@ def main() -> int:
                 if not path.is_file():
                     errors.append(f"missing fixture file: {path.relative_to(ROOT)}")
                 else:
-                    digest = hashlib.sha256(path.read_bytes()).hexdigest()
+                    digest = sha256_content(path)
                     if digest != expected:
                         errors.append(f"fixture hash mismatch: {path.relative_to(ROOT)}")
 

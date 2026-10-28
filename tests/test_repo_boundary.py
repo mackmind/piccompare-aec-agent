@@ -19,6 +19,24 @@ def test_boundary_checker_passes_on_clean_repo() -> None:
     assert result.returncode == 0, result.stdout + result.stderr
 
 
+def test_manifest_hashes_content_not_checkout(tmp_path: Path) -> None:
+    # A raw-byte hash of a text fixture would differ between a clone (CRLF on
+    # Windows) and the released tarball (LF), so the fixture manifest did not
+    # verify in a clean download. Text is normalised; binaries are not.
+    from aec.evidence import sha256_content
+
+    lf = tmp_path / "lf.json"
+    crlf = tmp_path / "crlf.json"
+    lf.write_bytes(b'{"a": 1}\n')
+    crlf.write_bytes(b'{"a": 1}\r\n')
+    assert sha256_content(lf) == sha256_content(crlf)
+    png_a = tmp_path / "a.png"
+    png_b = tmp_path / "b.png"
+    png_a.write_bytes(b"\x89PNG\r\n\x1a\n")
+    png_b.write_bytes(b"\x89PNG\n\x1a\n")
+    assert sha256_content(png_a) != sha256_content(png_b)
+
+
 def test_internal_record_names_are_refused() -> None:
     assert check_boundary.name_errors(Path("docs/LIVE-HANDOFF.md"))
     assert check_boundary.name_errors(Path("054-STATUS.md"))

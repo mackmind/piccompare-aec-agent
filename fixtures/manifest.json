@@ -8,9 +8,9 @@
       "files": {
         "a.png": "b3aa1e48dbc16c5a0fbbf6f1b4f8b059fd74d64e99a50bdb75b58d8e300963b5",
         "b.png": "5bd71ea73dfd011fa260184b3927eb169ef6337287e8f56eaeec766daa33ac16",
-        "config.json": "d26f08b8b154fbd334850deaa3cada5809dc0564a27ee9580fa447ee343208ba",
-        "ground_truth.json": "f6448e6f888ed24ce3cea18734610c7f513d84ea76ba8e7f0952454c06b00997",
-        "sam31.json": "acf96f10b44701c0c1e26f20746aeb181908af672838d5323ce8d94d061d21d3"
+        "config.json": "c9a10b047f087666c3f46f0ae3d39d8f67aa1b3664ab76a3a77db9b16e50cf7d",
+        "ground_truth.json": "ead2ee31be553027796d40b89624c7a62343e8b9fe9b1fe5c57f985b6bd49d1b",
+        "sam31.json": "f78dceacd24e80590507bf2951316c2713cf8f9c06909a6aeea46d32f97909a5"
       }
     },
     {
@@ -19,9 +19,9 @@
       "files": {
         "a.png": "96e6c416852b0ad65aee5ecaaa5a1c83a5e9144df30a41ad18935c060c640bca",
         "b.png": "d08c2a5bcd886c8b57a6c05ed92eb83b08eb1b1d0ddcff25f4fbff8c634f4c7e",
-        "config.json": "8d60e46e87510c689c9bfe97b1945818ac16bb1ce0a23290c2cf33dc7212c955",
-        "ground_truth.json": "088f4109a6b74a15a75c30c3f365512b95264776068ed8933eb468f105dbe7ec",
-        "sam31.json": "eb5ea21da2f099462a5a936774c57d16f0ad39a3f31503b62cb8929c50ff03b7"
+        "config.json": "fbf2d1b42ab83b83c2903fefbc43d25798c6616b72eab2f095cb04cfc8d89a6c",
+        "ground_truth.json": "7779688483b88145a96b3f32f4688a95c1ad7b3b3563ea1237641802ddb5af7b",
+        "sam31.json": "48d3c0e5c0976a2266e11367257967ffaa3dec9c8559144ce5ae4eedb2afc9e8"
       }
     },
     {
@@ -30,9 +30,9 @@
       "files": {
         "a.png": "37870533a1cf7e2f3f2ff4713687aeecaeb4e167b3fc874a607f676911c83edd",
         "b.png": "d95894b456a90208ece0bef9a463de5481fa76745431014a0dfceed264165c8d",
-        "config.json": "9fcb71459c9079a9d8456e2faec2a645ce5cedb2064a650df1144ff387c65561",
-        "ground_truth.json": "1a1c164a6192902e13d50fc0817f3f7796f439417120fd1ce906331398e61f09",
-        "sam31.json": "47bb23f83edb5e8a88ce9a07e7dc86fda1b99418761898cac257b5aae48f7fed"
+        "config.json": "dd9619a4c0ef0d109d2937e2ac36b4ea0da98e49fcb456d0e78203a9fe1bd993",
+        "ground_truth.json": "be5a47ca9b8695266bb6809cb9bb4f69d191fa6f9a0d9dc796aa26cc04f71d8c",
+        "sam31.json": "e29cd26dba16f3a509cdd10768a546dda9c9f02dc4fa82b69f989429b873610a"
       }
     },
     {
@@ -41,9 +41,9 @@
       "files": {
         "a.png": "56f899ef0e2a7a83881b0ed1660b4d027e94a6dcdedc673c0ee16adf5c765729",
         "b.png": "116ed5dde94ed839150df531a353c15577c219cd8d7081d3b96b25aba7d35b99",
-        "config.json": "2497dbc55b538c88483358f98269d661f09cd8d7fb6365aa3f05ea0ae13a120d",
-        "ground_truth.json": "92a9e5868939fb272fc82fc2f1607e732686a4aac21206efc6786da1dda0b094",
-        "sam31.json": "e154bc7a11b07401f6b0b593e02a262d887e8129fad4e2430f73f51966610e94"
+        "config.json": "8193467372a88857dd01c3c0052166628ab7894ee6b0422e6c268c658d3d3a56",
+        "ground_truth.json": "b55df01ae0237278cc664345a21e9a04f5bffa227da334f15e9207b9531b8b5f",
+        "sam31.json": "a4176a22790be9bc8a19c54bca51ab5ab4c1118a3ecce1f84283aa9850eb777a"
       }
     },
     {
@@ -52,9 +52,9 @@
       "files": {
         "a.png": "2a3891c44eeb8d5d66f60ecc0a7383d426a0bde1aa6f00f161a373209615b073",
         "b.png": "15d8f6d6010182c73b458a816e06873d6ddc9a98d79a731df4f0307b6a6e39ef",
-        "config.json": "f010e4ca4417840b32707dbe2bf426ea312b28020a1d95dbc794c6efa7f7c474",
-        "ground_truth.json": "56ec931f5b26954951a76afdd0c82f954f7d7f530404e216ebe5ec35d448b0ea",
-        "sam31.json": "a4d1df37e897d3f62574270fe22bcf8de00a3d27b67ba9e28ad4b843eaef44cd"
+        "config.json": "dd077be838dad08279fc98291d208167a52283117e08bc89df359a3ab5bd9b07",
+        "ground_truth.json": "4276019508b1e9c2504f251a4701a8cd7c2081b5a5cbeaf32f51f3ec60005232",
+        "sam31.json": "55f207123f684136777a529a9278153abf6361de6d0472bd60c4bd8034defeeb"
       }
     },
     {
@@ -63,9 +63,9 @@
       "files": {
         "a.png": "f9f1871b21179d518d6a90cc5e1683790349e68cf24eaa7b2bfdf9c571876cc5",
         "b.png": "ddc5051601fefc497f5c8da27c1c3b15ddc1eb9d30488495748853a5ba3fdaf4",
-        "config.json": "acc238aeafaf0e84b634a709475b682f1c5213b1f4b1e5d2e218174600901820",
-        "ground_truth.json": "758263397956c70ed3add8a0cc907eb51ab81cfc18a2589cb3f87a953194b033",
-        "sam31.json": "c48710f83e693b789ded002dd7ee87972d3c33ce3c343adf8b1ecfc1aced23fa"
+        "config.json": "b4a991db53f0e0b82dd7be979541ea1e71601978c7f72eddfd688f3eb6f9f8f5",
+        "ground_truth.json": "2555e68b20a675d11315a0ee173c412211d88e1e0c978d4fd7b0167f057c6362",
+        "sam31.json": "19e4101db46bcf19a137cfe227f5dcd541951fc8d2729281477dda8e8bdc163c"
       }
     },
     {
@@ -74,9 +74,9 @@
       "files": {
         "a.png": "107455cd94bed0c0aeb749eb1c9ee122f51b8535ea70ea57ad4cc325899760cc",
         "b.png": "6c7612f562ce951d64ecf6aa61dbee4c76c90c5c0b728d69c324c57b154c8933",
-        "config.json": "4702e91a0896797b9b08fbfb7f7adf4d4f26776f2879d8122e0fce125ba71bb9",
-        "ground_truth.json": "37baeb8dfacb7ecf6ed5609754f5c6d22db59b1e4d5ef4000c1ab52e4cc201d0",
-        "sam31.json": "cc364bd8c66910b648ed83ffa9c3e9be58470b5300b31cdf72291772ba083516"
+        "config.json": "eaf16b2677e2136bf74702b948a2a56b70f23b1169e51f10c325e0e26b0f0753",
+        "ground_truth.json": "e3033040db41ceafeb6b9425cd52b694e9223700c7c08e002fafec3a62fdddd3",
+        "sam31.json": "182bf4a4faa876624f05a048089a9de0fbfe5000a7452949ae86749ba7eaf229"
       }
     },
     {
@@ -85,9 +85,9 @@
       "files": {
         "a.png": "1b975f432a3cc9301972762d63a0519a7d41278d303ef69f59ca308fa810deaa",
         "b.png": "87bc512f9ee7f2ba96ddca88ea86e503110665f8032a9ad83454e3b2de4a4084",
-        "config.json": "6f9321cfed780480a341acdbab67615fe74e98a006595f9840980ebf8e20c965",
-        "ground_truth.json": "bdee73fa0913ea2653a3d3ef878441459b5c7cb8b8176ce8165767d68defeb4c",
-        "sam31.json": "04f5819a376d5dea7215b12753ec9091fabc43672d20717730ba137a8ad89df6"
+        "config.json": "adc66829ada5abcfbf531d53bc97a05a76f25a2ba91f7fd8802b1b939919a578",
+        "ground_truth.json": "0329ad45a61a6eeb180031387f3d6c47bc515686cada221a9ed7cd787fb68cec",
+        "sam31.json": "8e4a54073a0c86064d5014f6765ca6589500ce8b3d517f653061a5712338dad3"
       }
     },
     {
@@ -96,9 +96,9 @@
       "files": {
         "a.png": "86a0731248e4f7913d932d752b55b96ba8653f5e3d668f12bc03c37157a78911",
         "b.png": "0b1021a44258fb470db8c2d086967ce2aa2deb579c9f0cae8c116e50b17fa2c0",
-        "config.json": "9b5d943eab2bb31a7105c35199106c458f2b44807353481f67f1c2980a12f1ad",
-        "ground_truth.json": "38dbed29f9cdfadddde889489e9b70b240b96ac93b1a1f50f28de1437acee546",
-        "sam31.json": "54baeb129f236f7bce7e339eb5c7c1e4fd01ee84e1b96461b4307f7a85ab06cc"
+        "config.json": "fe6ed49ba9f4c3e3bed31a3e38f7d6f0737990af1157a301e33d70d65b911747",
+        "ground_truth.json": "c9d029d78bcc60a5eea2b2e302c9972ae08dae63aee5ebc6f6771384a014339e",
+        "sam31.json": "84eff51beecb97f250b9cd3fd808d5132942fd09e001dbd26ef010d081c948e9"
       }
     },
     {
@@ -107,9 +107,9 @@
       "files": {
         "a.png": "16d71033479e0499d88fb213268c8181039372b711442a185ad7ab7b327dba0c",
         "b.png": "7e567cc61bc93b9349a66990577b27d21d5f1c227923cf8ad72ebd4cb46c7c4c",
-        "config.json": "a816e1140159491a37cee31390ec48022bb7f286870952e543479cd868bb91f6",
-        "ground_truth.json": "e912c2661d3d00eaacd64fa941b590a9e077d8042d31c1dc3b057ff319162492",
-        "sam31.json": "aab62ad09d0a69fd6f91475b6a6eef03e4ff70961a9ceb1d9ba5f59b82538e53"
+        "config.json": "77431c461b91e429cc6cd24562296dd3a69ce41bc6de75311b534396c370a738",
+        "ground_truth.json": "a532f447c3e345c7631eb03ea069f4a89267543b4a685b1bfcc6d5e8695ecc73",
+        "sam31.json": "a3816035f8ac5e5450c0f8ff5258c49f7296b0c0e9cc9c4dc2cba90808351b69"
       }
     },
     {
@@ -118,9 +118,9 @@
       "files": {
         "a.png": "682e747a00a22a860be19f060ed065404465cba2ddfbee0ff6a24eb2f42126af",
         "b.png": "ba037af71232c43e0d6d060d3b3198e42d0a3c27eedf3bc968b13c111d6ee3b8",
-        "config.json": "41f8e494432e6aed43f07b5afb6d87de8c892d582494f6d006462373f3a503bf",
-        "ground_truth.json": "28a9a2950472a4a8315f98f3e07710978e54932a828c034d3f33a1c0c1787bd2",
-        "sam31.json": "c927202cd32701640cb69001f937d9ed6be86cf8c8905dac15de60dcf13fe06b"
+        "config.json": "3c7a7f0424cdc6bb1d9686d9c8a249213d69a2666cdf212805a72d1cf562ca03",
+        "ground_truth.json": "050f021eeedea87fb5b5aec51bf8aa1ef33407470191b6c5dc742553aa730dba",
+        "sam31.json": "54f7d06b3a7f69df476b8ce76a67f057bddbbf3881dc081d795f9d9be616fb84"
       }
     },
     {
@@ -129,9 +129,9 @@
       "files": {
         "a.png": "11146eb1c3e90ca0029f6f9042a3a5c1c61093bece94c5433fa094458e414343",
         "b.png": "5c63b1ea05448324ba303fe8087ebc44c6349a69dd9868a646c673cddd3294b4",
-        "config.json": "eef22e0118024a3beb2dbe17a84c130afcee5515ca7447cdcaba279b058ace8a",
-        "ground_truth.json": "f344942a1e76ea3de78707e580034c42597d706592b5e940af389fee072dea94",
-        "sam31.json": "b8b1a2e3022f3131dfd7ddb08d1958270a05301c8e0e889907a6b0fcf5973306"
+        "config.json": "300b7d72e1015f9da75f4d782b8af6313bd1c056aa4fc828e2216f3ba29f6eba",
+        "ground_truth.json": "0731982170e0639cf577043a1f075049ec2e77a2e52af11dc35a1de7cc07da5f",
+        "sam31.json": "9a092f26135be022b989b04cdb3b2a9497327ae3a1d26306953b489394eb5c31"
       }
     }
   ]

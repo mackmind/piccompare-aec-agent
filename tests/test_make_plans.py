@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import hashlib
 import json
 import subprocess
 import sys
@@ -8,11 +7,13 @@ from pathlib import Path
 
 from make_plans import make_all, make_plan_pair
 
+from aec.evidence import sha256_content
+
 ROOT = Path(__file__).resolve().parent.parent
 
 
 def _sha256(path: Path) -> str:
-    return hashlib.sha256(path.read_bytes()).hexdigest()
+    return sha256_content(path)
 
 
 def test_generator_creates_twelve_pairs(tmp_path) -> None:

@@ -4,7 +4,6 @@
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import random
 from dataclasses import dataclass
@@ -12,6 +11,8 @@ from pathlib import Path
 from typing import Any
 
 from PIL import Image, ImageDraw
+
+from aec.evidence import sha256_content
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 PAGE_W = 1600
@@ -271,9 +272,7 @@ def _write_json(path: Path, payload: dict[str, Any]) -> None:
 
 
 def _sha256(path: Path) -> str:
-    digest = hashlib.sha256()
-    digest.update(path.read_bytes())
-    return digest.hexdigest()
+    return sha256_content(path)
 
 
 def make_plan_pair(

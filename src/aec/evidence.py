@@ -23,6 +23,23 @@ def sha256_file(path: Path) -> str:
     return digest.hexdigest()
 
 
+TEXT_SUFFIXES = {".json", ".md", ".toml", ".txt", ".yaml", ".yml"}
+
+
+def sha256_content(path: Path) -> str:
+    """Hash content, not checkout: text files are normalised to LF.
+
+    Git stores text as LF and a Windows checkout writes it back as CRLF, so a
+    raw-byte hash of a text fixture identifies the checkout rather than the
+    content - a clone and a release tarball would disagree. Binaries are hashed
+    as-is; a PNG may legitimately contain the CRLF byte pair.
+    """
+    data = path.read_bytes()
+    if path.suffix.lower() in TEXT_SUFFIXES:
+        data = data.replace(b"\r\n", b"\n")
+    return sha256_bytes(data)
+
+
 def canonical_json(value: Any) -> str:
     return json.dumps(value, ensure_ascii=True, sort_keys=True, separators=(",", ":"))
 
