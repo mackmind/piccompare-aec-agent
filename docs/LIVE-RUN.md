@@ -97,3 +97,25 @@ definition guard failed.
 - Live model use before a live receipt exists.
 - Real-world accuracy, human-time savings, full CAD, signed evidence, art
   authentication or cartography.
+
+## Live results (2026-10-28)
+
+- **Muse chat: PASS** — `muse-spark-1.3-contributor`, 1 call, 403 tokens for the
+  JSON smoke. Muse is a reasoning model: reasoning tokens count against
+  `max_completion_tokens`, and the AEC critic needed **8192** (at 2048 it hit
+  `finish_reason=length` with empty content on a real review context).
+- **SAM: PASS with box prompts** — a mask decoded and matched the room polygon
+  (ROOM A: 97,97–504,503 against ground truth 100,100–500,500, IoU ≈ 0.95).
+- **SAM concept prompts: 0 objects** on `resize-01/a`, `identical-01/a`,
+  `merge-01/a` for `room`, `wall`, `door` and `table`. Propose regions from the
+  plan geometry (`aec.propose.propose_boxes`, `--boxes-from-plan`) and let SAM
+  segment each box; that recovers every room on all seven fixtures at IoU
+  0.92–0.96.
+- **One live pair** (`resize-01`, proposed regions): 5 verified findings, 0 not
+  compared, 0 rejected, report digest `f6965242…`, receipts `live_meta`,
+  `sam-3.1`, `muse-spark-1.3-contributor`, 55 SAM calls.
+- **The live eval does not yet score.** SAM supplies no room identity and its
+  masks carry ~0.05 m² of boundary noise, so `run_eval.py --live` sees false
+  `room_resized` findings and cannot align a refusal with the ground-truth room
+  ids. Use the offline deterministic path for scored evidence and the live
+  receipts as proof that the API path works.

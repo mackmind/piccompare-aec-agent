@@ -130,7 +130,6 @@ def parse_output_text(text: str, label: str = "object") -> list[dict[str, Any]]:
                 "label": label,
                 "bbox": [min(x1, x2), min(y1, y2), max(x1, x2), max(y1, y2)],
                 "polygon": [[x1, y1], [x2, y1], [x2, y2], [x1, y2], [x1, y1]],
-                "score": None,
                 "mask_available": False,
                 "_image": (image_w, image_h),
             })
@@ -159,7 +158,6 @@ def parse_output_text(text: str, label: str = "object") -> list[dict[str, Any]]:
                 "label": label,
                 "bbox": [x, y, x + width_i, y + height_i],
                 "polygon": None,
-                "score": None,
                 "mask_available": False,
                 "_image": (0, 0),
             }

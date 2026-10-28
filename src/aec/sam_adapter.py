@@ -57,7 +57,7 @@ def object_from_payload(
 ) -> SamObject:
     label = _label(raw)
     polygon = _polygon(raw)
-    score = float(raw.get("score", 0.0))
+    score = float(raw.get("score") or 0.0)
     score = max(0.0, min(1.0, score))
     return SamObject(
         object_id=f"{fixture}:{side}:{page.page}:{label}:{index}",

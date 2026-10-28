@@ -157,18 +157,31 @@ class MetaClient:
         if response is None:
             raise MetaTransportError("no response received", retryable=True)
         try:
-            content = response["choices"][0]["message"]["content"]
+            choice = response["choices"][0]
+            message = choice["message"]
+            content = message.get("content")
         except (KeyError, IndexError, TypeError) as error:
-            raise MetaSchemaError("response has no choices[0].message.content") from error
+            raise MetaSchemaError("response has no choices[0].message") from error
+        if isinstance(content, list):
+            # Some Muse responses carry content parts; join their text.
+            content = "".join(
+                str(part.get("text") or "") for part in content
+                if isinstance(part, Mapping))
         if isinstance(content, str):
             try:
                 parsed = json.loads(content)
             except ValueError as error:
-                raise MetaSchemaError("message content is not JSON") from error
+                raise MetaSchemaError(
+                    "message content is not JSON "
+                    f"(finish_reason={choice.get('finish_reason')!r}, "
+                    f"head={content[:120]!r})") from error
         elif isinstance(content, Mapping):
             parsed = dict(content)
         else:
-            raise MetaSchemaError("message content is not a JSON object")
+            raise MetaSchemaError(
+                f"message content is {type(content).__name__} "
+                f"(finish_reason={choice.get('finish_reason')!r}, "
+                f"refusal={str(message.get('refusal'))[:120]!r})")
         if not isinstance(parsed, dict):
             raise MetaSchemaError("message content must be a JSON object")
         usage = response.get("usage") or {}

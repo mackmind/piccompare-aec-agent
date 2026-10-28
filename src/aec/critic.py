@@ -93,6 +93,11 @@ class Critic:
             json.dumps(context, ensure_ascii=True, sort_keys=True),
             DECISION_SCHEMA,
             schema_name="aec_critic",
+            # Muse Spark is a reasoning model: reasoning tokens count against
+            # this budget, and a big review context can exhaust it before any
+            # JSON is emitted (observed live 2026-10-28: finish_reason=length,
+            # content=None at 2048).
+            max_tokens=8192,
         )
         decisions = result.content.get("decisions")
         if not isinstance(decisions, list):

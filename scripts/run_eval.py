@@ -141,8 +141,11 @@ def run_eval(
             (pair_dir / "ground_truth.json").read_text(encoding="utf-8")
         )
         if live and sam_client is not None and meta_client is not None:
+            # SAM answers box prompts on line art, not concept prompts, so the
+            # live leg proposes regions from the plan geometry.
             result = run_pair_live(
-                pair_dir, sam_client, meta_client, out_dir / pair_dir.name
+                pair_dir, sam_client, meta_client, out_dir / pair_dir.name,
+                boxes_from_plan=True,
             )
         else:
             result = run_pair(pair_dir, out_dir / pair_dir.name)

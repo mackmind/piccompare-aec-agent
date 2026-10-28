@@ -17,6 +17,10 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--fixture", required=True)
     parser.add_argument("--out", required=True)
     parser.add_argument("--prompt", default="room")
+    parser.add_argument("--boxes-from-plan", action="store_true",
+                        help="propose regions from the plan geometry and ask SAM "
+                             "to segment each box (concept prompts return nothing "
+                             "on line-art plans)")
     args = parser.parse_args(argv)
     api_key = os.environ.get("META_API_KEY", "")
     meta_model = os.environ.get("META_MODEL_ID", "")
@@ -27,7 +31,8 @@ def main(argv: list[str] | None = None) -> int:
     sam = SamClient(api_key=api_key, model_id=sam_model)
     meta = MetaClient(api_key=api_key, model_id=meta_model)
     result = run_pair_live(
-        Path(args.fixture), sam, meta, Path(args.out), args.prompt
+        Path(args.fixture), sam, meta, Path(args.out), args.prompt,
+        boxes_from_plan=args.boxes_from_plan,
     )
     print(
         f"pair={result.pair_id} verified={len(result.verified)} "

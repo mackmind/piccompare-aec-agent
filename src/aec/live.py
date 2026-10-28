@@ -36,6 +36,43 @@ def _raw_with_polygon(raw: dict[str, Any]) -> dict[str, Any]:
     return {**raw, "polygon": [list(point) for point in polygon]}
 
 
+def segment_proposed_regions(sam_client: SamClient, image: bytes,
+                             min_area_ratio: float = 0.01) -> SamResult:
+    """Propose plan regions geometrically, then let SAM produce each mask.
+
+    SAM answers box prompts on line art but not concept prompts, so the caller
+    supplies the candidate regions and the model supplies the segmentation.
+    """
+    import io
+    import time as _time
+
+    from PIL import Image
+
+    from aec.propose import propose_boxes
+    from aec.sam import box_prompt
+
+    width, height = Image.open(io.BytesIO(image)).size
+    boxes = propose_boxes(image, min_area_ratio=min_area_ratio)
+    objects: list[dict[str, Any]] = []
+    usage: dict[str, Any] = {}
+    calls = 0
+    model = sam_client.model_id
+    started = _time.perf_counter()
+    for box in boxes:
+        result = sam_client.segment(
+            image, box_prompt(box[0], box[1], box[2], box[3], width, height))
+        calls += result.calls
+        model = result.model or model
+        for key, value in (result.usage or {}).items():
+            if isinstance(value, int):
+                usage[key] = usage.get(key, 0) + value
+        for obj in result.objects:
+            objects.append({**obj, "object_id": str(len(objects) + 1),
+                            "proposed_box": [int(v) for v in box]})
+    return SamResult(objects=objects, usage=usage, model=model, calls=calls,
+                     latency_ms=int((_time.perf_counter() - started) * 1000))
+
+
 def live_objects(
     result: SamResult,
     page: PageGeometry,
@@ -56,6 +93,7 @@ def run_pair_live(
     meta_client: MetaClient,
     out_dir: str | Path | None = None,
     prompt: str = "room",
+    boxes_from_plan: bool = False,
 ) -> PairResult:
     directory = Path(fixture_dir)
     config = json.loads((directory / "config.json").read_text(encoding="utf-8"))
@@ -67,8 +105,14 @@ def run_pair_live(
         height=int(page_config["height"]),
     )
     scale = _scale(config)
-    a_result = sam_client.segment((directory / "a.png").read_bytes(), prompt, page.page)
-    b_result = sam_client.segment((directory / "b.png").read_bytes(), prompt, page.page)
+    image_a = (directory / "a.png").read_bytes()
+    image_b = (directory / "b.png").read_bytes()
+    if boxes_from_plan:
+        a_result = segment_proposed_regions(sam_client, image_a)
+        b_result = segment_proposed_regions(sam_client, image_b)
+    else:
+        a_result = sam_client.segment(image_a, prompt, page.page)
+        b_result = sam_client.segment(image_b, prompt, page.page)
     meta_calls_start = meta_client.calls
     meta_result_before = meta_client.last_result
     elements_a = build_elements(
