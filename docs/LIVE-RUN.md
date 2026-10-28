@@ -117,14 +117,15 @@ definition guard failed.
   **verifies** (`python -m aec verify --report runs/live/resize-01/report.json
   --inputs-dir fixtures/aec/resize-01` → PASS), so the hashed-and-replayable
   claim covers live evidence too.
-- **The live eval scores 8 of 12 pairs** (`run_eval.py --live --fixtures fixtures`,
-  2026-10-28): identical, noise, merge-01/02 (refusals), resize-02, split-02 (refusal) and
-  wall_move-01/02 pass. The four misses are the known limits below, not tuning:
+- **The live eval scores 9 of 12 pairs** (`run_eval.py --live --fixtures fixtures`,
+  2026-10-28): identical, noise, merge-01/02 and split-01/02 (four refusals), resize-02 and
+  wall_move-01/02 pass. The three misses are the known limits below, not tuning:
   - **no plan labels without OCR** — `label_change-01` (and the label part of `mixed-01`) cannot
     be seen; SAM returns no text;
-  - **thin partitions are smoothed** — on `split-01` SAM's box mask covers the whole room, so the
-    split is not refused (the offline vector path does refuse it);
-  - **residual mask noise** — two false `room_resized` findings across 12 pairs at the 5× band.
-  Live masks are simplified to plan-like vertices and the comparison tolerances are widened 5×
-  (recorded in each report's usage note); scoring aligns live elements to ground-truth rooms by
-  polygon IoU because SAM supplies no labels. Offline remains 12/12.
+  - **residual mask noise** — two false `room_resized` findings across 12 pairs at the 5× band
+    (`resize-01`, `mixed-01`).
+  Splits are refused live because a proposed box that two or more children fill is dropped in
+  favour of the finer partition. Live masks are simplified to plan-like vertices and the
+  comparison tolerances are widened 5× (recorded in each report's usage note); scoring aligns
+  live elements to ground-truth rooms by polygon IoU because SAM supplies no labels. Offline
+  remains 12/12.
