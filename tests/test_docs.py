@@ -31,7 +31,10 @@ def test_submission_checklist_has_no_placeholders() -> None:
 
 def test_limitations_are_explicit() -> None:
     text = (ROOT / "docs" / "LIMITATIONS.md").read_text(encoding="utf-8")
-    for phrase in ["Synthetic data only", "No live model evidence", "No full CAD"]:
+    # Round 13: live evidence now exists, so the pinned phrase became false.
+    # Keep the test on the limits that must always be stated.
+    for phrase in ["Synthetic data only", "No real-world accuracy claim",
+                   "No full CAD", "No OCR", "No signed evidence"]:
         assert phrase in text
 
 

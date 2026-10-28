@@ -24,6 +24,34 @@ def _iou(a: tuple[int, int, int, int], b: tuple[int, int, int, int]) -> float:
     return inter / union if union else 0.0
 
 
+def _contains(outer: tuple[int, int, int, int],
+              inner: tuple[int, int, int, int]) -> bool:
+    return (outer[0] <= inner[0] and outer[1] <= inner[1]
+            and inner[2] <= outer[2] and inner[3] <= outer[3])
+
+
+def _drop_parent_boxes(
+    boxes: list[tuple[int, int, int, int]],
+) -> list[tuple[int, int, int, int]]:
+    """Keep the FINER partition: drop a box two or more children fill.
+
+    A split room is proposed twice - as the outer free-space region and as the
+    two halves - because the new wall leaves a gap. Segmenting the parent hides
+    the split, so the children win when together they fill most of the parent.
+    """
+    kept: list[tuple[int, int, int, int]] = []
+    for box in boxes:
+        children = [other for other in boxes
+                    if other != box and _contains(box, other)]
+        area = (box[2] - box[0]) * (box[3] - box[1])
+        child_area = sum((child[2] - child[0]) * (child[3] - child[1])
+                         for child in children)
+        if len(children) >= 2 and area and child_area >= 0.8 * area:
+            continue
+        kept.append(box)
+    return kept
+
+
 def propose_boxes(image_bytes: bytes, min_area_ratio: float = 0.01,
                   max_area_ratio: float = 0.4) -> list[tuple[int, int, int, int]]:
     """Enclosed paper regions as (x1, y1, x2, y2), largest first."""
@@ -60,4 +88,4 @@ def propose_boxes(image_bytes: bytes, min_area_ratio: float = 0.01,
     for box in boxes:
         if all(_iou(box, other) < 0.8 for other in kept):
             kept.append(box)
-    return kept
+    return _drop_parent_boxes(kept)

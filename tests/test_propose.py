@@ -71,3 +71,34 @@ def test_segment_proposed_regions_merges_one_call_per_box():
     assert all(prompt.startswith("<0f>1<|box;") for prompt in prompts)
     assert [obj["object_id"] for obj in result.objects] == [
         str(index) for index in range(1, len(boxes) + 1)]
+
+
+def test_parent_box_is_dropped_for_a_finer_partition():
+    from aec.propose import _drop_parent_boxes
+    parent = (0, 0, 100, 100)
+    left = (0, 0, 50, 100)
+    right = (50, 0, 100, 100)
+    other = (200, 200, 300, 300)
+    assert _drop_parent_boxes([parent, left, right, other]) == [left, right, other]
+
+
+def test_a_single_nested_box_keeps_its_parent():
+    from aec.propose import _drop_parent_boxes
+    parent = (0, 0, 100, 100)
+    child = (10, 10, 50, 50)
+    assert _drop_parent_boxes([parent, child]) == [parent, child]
+
+
+def test_split_side_proposals_keep_both_halves():
+    split = FIXTURE.parent / "split-01"
+    boxes = propose_boxes((split / "b.png").read_bytes())
+    truth = json.loads((split / "ground_truth.json").read_text(encoding="utf-8"))
+
+    def bbox(polygon):
+        xs = [point[0] for point in polygon]
+        ys = [point[1] for point in polygon]
+        return (min(xs), min(ys), max(xs), max(ys))
+
+    for room in truth["rooms_b"]:
+        expected = bbox(room["polygon_px"])
+        assert any(_iou(box, expected) >= 0.5 for box in boxes), (room["room_id"], boxes)
