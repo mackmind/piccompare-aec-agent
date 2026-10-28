@@ -52,7 +52,8 @@ def test_segment_proposed_regions_merges_one_call_per_box():
     class FakeClient:
         model_id = "sam-3.1"
 
-        def segment(self, image: bytes, prompt: str, page: int = 0) -> SamResult:
+        def segment(self, image: bytes, prompt: str, page: int = 0,
+                    label: str | None = None) -> SamResult:
             prompts.append(prompt)
             return SamResult(
                 objects=[{"bbox": [0, 0, 10, 10], "label": "room",
@@ -102,3 +103,20 @@ def test_split_side_proposals_keep_both_halves():
     for room in truth["rooms_b"]:
         expected = bbox(room["polygon_px"])
         assert any(_iou(box, expected) >= 0.5 for box in boxes), (room["room_id"], boxes)
+
+
+def test_furniture_inside_a_room_does_not_delete_the_room():
+    from aec.propose import _drop_parent_boxes
+    room = (0, 0, 300, 300)
+    table_a = (10, 10, 280, 80)
+    table_b = (10, 90, 280, 160)
+    kept = _drop_parent_boxes([room, table_a, table_b])
+    assert room in kept, kept
+
+
+def test_two_halves_that_tile_the_parent_still_drop_it():
+    from aec.propose import _drop_parent_boxes
+    parent = (0, 0, 100, 100)
+    left = (0, 0, 50, 100)
+    right = (50, 0, 100, 100)
+    assert _drop_parent_boxes([parent, left, right]) == [left, right]

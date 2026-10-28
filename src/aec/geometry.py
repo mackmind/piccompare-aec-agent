@@ -46,6 +46,46 @@ def segments_px(polygon: PolygonLike) -> list[float]:
     ]
 
 
+def resample_polygon(polygon: PolygonLike, count: int = 32) -> list[Point]:
+    """`count` points equally spaced along the closed polygon's perimeter.
+
+    Two masks of the same room can simplify to a different number of vertices
+    (a chamfered corner is one extra). Comparing per-edge lists positionally then
+    yields a large spurious delta, so both are resampled onto the same arc-length
+    grid first and the comparison stays shape-based.
+    """
+    points = _open_points(polygon)
+    if len(points) < 3 or count < 3:
+        return points
+    edges: list[tuple[Point, Point, float]] = []
+    total = 0.0
+    for index in range(len(points)):
+        start = points[index]
+        end = points[(index + 1) % len(points)]
+        length = math.dist(start, end)
+        edges.append((start, end, length))
+        total += length
+    if total <= 0:
+        return points
+    step = total / count
+    out: list[Point] = []
+    edge_index = 0
+    consumed = 0.0
+    for index in range(count):
+        target = index * step
+        while edge_index < len(edges) and consumed + edges[edge_index][2] < target:
+            consumed += edges[edge_index][2]
+            edge_index += 1
+        if edge_index >= len(edges):
+            out.append(points[-1])
+            break
+        start, end, length = edges[edge_index]
+        fraction = (target - consumed) / length if length else 0.0
+        out.append((start[0] + (end[0] - start[0]) * fraction,
+                    start[1] + (end[1] - start[1]) * fraction))
+    return out
+
+
 def polygon_perimeter_px(polygon: PolygonLike) -> float:
     return sum(segments_px(polygon))
 

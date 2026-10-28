@@ -33,21 +33,29 @@ def _contains(outer: tuple[int, int, int, int],
 def _drop_parent_boxes(
     boxes: list[tuple[int, int, int, int]],
 ) -> list[tuple[int, int, int, int]]:
-    """Keep the FINER partition: drop a box two or more children fill.
+    """Keep the FINER partition: drop a box two or more children TILE.
 
     A split room is proposed twice - as the outer free-space region and as the
     two halves - because the new wall leaves a gap. Segmenting the parent hides
-    the split, so the children win when together they fill most of the parent.
+    the split, so the children win - but only when their union fills the parent
+    AND they are disjoint pieces. A bbox-area sum is not enough: a room that
+    merely contains furniture (two tables) would otherwise be deleted, which is
+    the opposite of what this rule is for.
     """
+    from shapely.geometry import box as _shp_box
+    from shapely.ops import unary_union
+
     kept: list[tuple[int, int, int, int]] = []
     for box in boxes:
         children = [other for other in boxes
                     if other != box and _contains(box, other)]
-        area = (box[2] - box[0]) * (box[3] - box[1])
-        child_area = sum((child[2] - child[0]) * (child[3] - child[1])
-                         for child in children)
-        if len(children) >= 2 and area and child_area >= 0.8 * area:
-            continue
+        if len(children) >= 2:
+            parent = _shp_box(*box)
+            pieces = unary_union([_shp_box(*child) for child in children])
+            covered = parent.intersection(pieces).area
+            if (parent.area and covered >= 0.8 * parent.area
+                    and pieces.area <= 1.05 * covered):
+                continue
         kept.append(box)
     return kept
 

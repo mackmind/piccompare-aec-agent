@@ -36,22 +36,27 @@ def _raw_with_polygon(raw: dict[str, Any]) -> dict[str, Any]:
     return {**raw, "polygon": [list(point) for point in polygon]}
 
 
-LIVE_NOISE_MULTIPLIER = 5.0
+# A mask edge sits a few pixels off the drawn line, so segment/angle tolerances
+# widen 5x. The material AREA floor comes from geometry instead: a 400 px room
+# with a +-2 px boundary displaces about 0.3 m2 at 100 px/m.
+MASK_PRECISION_MULTIPLIER = 5.0
+MASK_AREA_NOISE_M2 = 0.3
 
 
 def _live_plan(plan: PlanSpec) -> PlanSpec:
-    """Widen the comparison tolerances for live mask noise.
+    """Adapt the comparison tolerances to live mask noise (disclosed).
 
-    SAM mask contours sit a pixel or two off the drawn edge, which is inside the
-    fixtures' design tolerances for exact polygons but not for masks. The
-    multiplier is disclosed in the report's usage note and limitations.
+    `area_tolerance_m2` is deliberately NOT touched: nothing in the comparison
+    reads it (the material decision uses `material_area_delta_m2`), so scaling
+    it would only advertise a number with no effect.
     """
-    m = LIVE_NOISE_MULTIPLIER
     return plan.model_copy(update={
-        "area_tolerance_m2": plan.area_tolerance_m2 * m,
-        "dimension_tolerance_px": plan.dimension_tolerance_px * m,
-        "angle_tolerance_deg": plan.angle_tolerance_deg * m,
-        "material_area_delta_m2": plan.material_area_delta_m2 * m,
+        "dimension_tolerance_px":
+            plan.dimension_tolerance_px * MASK_PRECISION_MULTIPLIER,
+        "angle_tolerance_deg":
+            plan.angle_tolerance_deg * MASK_PRECISION_MULTIPLIER,
+        "material_area_delta_m2":
+            max(plan.material_area_delta_m2, MASK_AREA_NOISE_M2),
     })
 
 
@@ -68,7 +73,7 @@ def segment_proposed_regions(sam_client: SamClient, image: bytes,
     from PIL import Image
 
     from aec.propose import propose_boxes
-    from aec.sam import box_prompt
+    from aec.sam import SamError, box_prompt
 
     width, height = Image.open(io.BytesIO(image)).size
     boxes = propose_boxes(image, min_area_ratio=min_area_ratio)
@@ -77,9 +82,16 @@ def segment_proposed_regions(sam_client: SamClient, image: bytes,
     calls = 0
     model = sam_client.model_id
     started = _time.perf_counter()
+    failures = 0
     for box in boxes:
-        result = sam_client.segment(
-            image, box_prompt(box[0], box[1], box[2], box[3], width, height))
+        try:
+            result = sam_client.segment(
+                image, box_prompt(box[0], box[1], box[2], box[3], width, height),
+                label="room")
+        except SamError:
+            # One bad region must not lose the other rooms of the side.
+            failures += 1
+            continue
         calls += result.calls
         model = result.model or model
         for key, value in (result.usage or {}).items():
@@ -88,6 +100,8 @@ def segment_proposed_regions(sam_client: SamClient, image: bytes,
         for obj in result.objects:
             objects.append({**obj, "object_id": str(len(objects) + 1),
                             "proposed_box": [int(v) for v in box]})
+    if failures:
+        usage["failed_boxes"] = failures
     return SamResult(objects=objects, usage=usage, model=model, calls=calls,
                      latency_ms=int((_time.perf_counter() - started) * 1000))
 
@@ -104,6 +118,22 @@ def live_objects(
         )
         for index, raw in enumerate(result.objects)
     ]
+
+
+def _live_limitations(failures: int) -> list[str]:
+    lines = [
+        "Live SAM masks carry boundary noise; segment/angle tolerances are "
+        f"{MASK_PRECISION_MULTIPLIER}x the plan's and the material area delta is "
+        f"floored at {MASK_AREA_NOISE_M2} m2 (see the usage note).",
+        "SAM supplies no room labels; the evaluator aligns live elements to "
+        "ground-truth rooms by polygon IoU (scoring only).",
+        "A proposed region that is not a room (title block, scale bar) is "
+        "compared like any other element.",
+        "Synthetic fixture used for this live-path test only; no real-world claim.",
+    ]
+    if failures:
+        lines.append(f"{failures} proposed region(s) failed to segment and were skipped.")
+    return lines
 
 
 def run_pair_live(
@@ -134,6 +164,8 @@ def run_pair_live(
     else:
         a_result = sam_client.segment(image_a, prompt, page.page)
         b_result = sam_client.segment(image_b, prompt, page.page)
+    failures = (int(a_result.usage.get("failed_boxes") or 0)
+                + int(b_result.usage.get("failed_boxes") or 0))
     meta_calls_start = meta_client.calls
     meta_result_before = meta_client.last_result
     elements_a = build_elements(
@@ -214,18 +246,14 @@ def run_pair_live(
             "meta_usage": latest_usage,
             "fallback_used": False,
             "note": (f"Live run; receipts are recorded from the clients. "
-                     f"Sampling tolerances widened {LIVE_NOISE_MULTIPLIER}x "
-                     f"for live mask noise: area {plan.area_tolerance_m2:.2f} m2, "
-                     f"dimension {plan.dimension_tolerance_px:.1f} px, "
-                     f"angle {plan.angle_tolerance_deg:.1f} deg."),
+                     f"Live mask precision: segment {plan.dimension_tolerance_px:.1f} px "
+                     f"and angle {plan.angle_tolerance_deg:.1f} deg "
+                     f"({MASK_PRECISION_MULTIPLIER}x the plan's); material area delta "
+                     f"{plan.material_area_delta_m2:.2f} m2 "
+                     f"(floor {MASK_AREA_NOISE_M2} m2). "
+                     f"area_tolerance_m2 is not consulted by the comparison."),
         },
-        limitations=[
-            "Live SAM masks carry boundary noise; the comparison tolerances are "
-            f"widened {LIVE_NOISE_MULTIPLIER}x and recorded in the usage note.",
-            "SAM supplies no room labels; the evaluator aligns live elements to "
-            "ground-truth rooms by polygon IoU (scoring only).",
-            "Synthetic fixture used for this live-path test only; no real-world claim.",
-        ],
+        limitations=_live_limitations(failures),
     )
     report_path: Path | None = None
     if out_dir is not None:

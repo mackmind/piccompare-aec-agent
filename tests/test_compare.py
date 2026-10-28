@@ -41,3 +41,23 @@ def test_split_candidate_is_not_compared() -> None:
     findings = candidate_findings(deltas, matches, first, second, spec())
     assert findings[0].status == "not_compared"
     assert findings[0].change_type == "room_split"
+
+
+def test_vertex_count_mismatch_is_compared_on_a_common_sampling():
+    from aec.compare import _comparable_geometry
+    from aec.models import Element
+
+    def element(polygon):
+        return Element(element_id="e", element_type="room", label="room", page=0,
+                       polygon_px=polygon, area_px2=160000.0, area_m2=16.0,
+                       centroid_px=[300.0, 300.0], segments_px=[400.0] * 4,
+                       angles_deg=[90.0] * 4, source_objects=["o"], confidence=1.0)
+
+    square = [[100, 100], [500, 100], [500, 500], [100, 500], [100, 100]]
+    chamfered = [[100, 100], [500, 100], [500, 480], [480, 500], [100, 500],
+                 [100, 100]]
+    first_segments, second_segments, _, _ = _comparable_geometry(
+        element(square), element(chamfered))
+    assert len(first_segments) == len(second_segments)
+    deltas = [abs(a - b) for a, b in zip(first_segments, second_segments, strict=True)]
+    assert max(deltas) < 20.0, deltas

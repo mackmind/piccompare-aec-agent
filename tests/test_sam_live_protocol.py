@@ -124,3 +124,68 @@ def test_client_requires_credentials():
     from aec.sam import SamUnavailable
     with pytest.raises(SamUnavailable):
         SamClient(api_key="").segment(b"png", "room")
+
+
+def test_calls_reports_only_this_segment():
+    def transport(url, headers, payload, timeout):
+        return {"output_text": SAMPLE, "model": "sam-3.1", "usage": {},
+                "completed": True}
+
+    client = SamClient(api_key="k", transport=transport)
+    first = client.segment(b"png", "box")
+    second = client.segment(b"png", "box")
+    assert first.calls == 1 and second.calls == 1
+    assert client.calls == 2
+
+
+def test_stream_error_and_truncation_raise():
+    import pytest
+
+    from aec.sam import SamTransportError
+
+    failing = SamClient(api_key="k", max_attempts=1,
+                        transport=lambda *a: {"error": "boom"})
+    with pytest.raises(SamTransportError):
+        failing.segment(b"png", "room")
+
+    truncated = SamClient(api_key="k", max_attempts=1,
+                          transport=lambda *a: {"output_text": SAMPLE,
+                                                "completed": False})
+    with pytest.raises(SamTransportError):
+        truncated.segment(b"png", "room")
+
+
+def test_completed_empty_text_is_zero_objects():
+    # A concept prompt that finds nothing is a legitimate 0-object result.
+    client = SamClient(api_key="k",
+                       transport=lambda *a: {"output_text": "", "completed": True})
+    assert client.segment(b"png", "room").objects == []
+
+
+def test_mask_before_box_pairs_into_one_record():
+    text = ("<|mask;x=0;y=0;data=10,20,!abc|>"
+            "<|box;x1=5;y1=6;x2=25;y2=16;w=100;h=100|>")
+    objects = parse_output_text(text, "room")
+    assert len(objects) == 1
+    assert objects[0]["bbox"] == [5.0, 6.0, 25.0, 16.0]
+
+
+def test_mask_dimensions_and_offset_are_unconditional(monkeypatch):
+    import aec.sam as sam
+
+    seen = {}
+
+    def fake_decode(x, y, height, width, payload, image_width, image_height):
+        seen.update(x=x, y=y, height=height, width=width,
+                    image_width=image_width, image_height=image_height)
+        return None
+
+    monkeypatch.setattr(sam, "_decode_mask", fake_decode)
+    # data=H,W with H != W, and a non-zero mask origin inside a box.
+    text = ("<|box;x1=100;y1=200;x2=500;y2=600;w=1600;h=1200|>"
+            "<|mask;x=7;y=9;data=40,300,payload|>")
+    objects = sam.parse_output_text(text, "room")
+    assert seen == {"x": 107, "y": 209, "height": 40, "width": 300,
+                    "image_width": 1600, "image_height": 1200}
+    assert objects[0]["mask_available"] is False     # decode returned None
+    assert objects[0]["bbox"] == [100.0, 200.0, 500.0, 600.0]

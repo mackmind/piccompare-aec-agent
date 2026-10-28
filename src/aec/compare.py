@@ -4,11 +4,32 @@ from __future__ import annotations
 
 from typing import Literal
 
+from aec.geometry import angles_deg, resample_polygon, segments_px
 from aec.models import Element, ElementMatch, Finding, MeasurementDelta, PlanSpec
 
 
 def _deltas(first: list[float], second: list[float]) -> list[float]:
     return [abs(a - b) for a, b in zip(first, second, strict=False)]
+
+
+def _comparable_geometry(first: Element, second: Element) -> tuple[
+        list[float], list[float], list[float], list[float]]:
+    """Segment/angle lists for a matched pair on a common sampling.
+
+    A mask may simplify to one more vertex than its counterpart (a chamfered
+    corner), and zipping the raw lists then reports a large delta at every later
+    index. When the counts differ, resample both polygons onto the same
+    arc-length grid so the comparison stays shape-based.
+    """
+    if len(first.segments_px) == len(second.segments_px):
+        return (first.segments_px, second.segments_px,
+                first.angles_deg, second.angles_deg)
+    count = max(12, min(64, 2 * max(len(first.segments_px),
+                                   len(second.segments_px))))
+    first_polygon = resample_polygon(first.polygon_px, count)
+    second_polygon = resample_polygon(second.polygon_px, count)
+    return (segments_px(first_polygon), segments_px(second_polygon),
+            angles_deg(first_polygon), angles_deg(second_polygon))
 
 
 def compare_measurements(
@@ -36,8 +57,10 @@ def compare_measurements(
             )
             continue
         area_delta = second.area_m2 - first.area_m2
-        segment_deltas = _deltas(first.segments_px, second.segments_px)
-        angle_deltas = _deltas(first.angles_deg, second.angles_deg)
+        first_segments, second_segments, first_angles, second_angles = (
+            _comparable_geometry(first, second))
+        segment_deltas = _deltas(first_segments, second_segments)
+        angle_deltas = _deltas(first_angles, second_angles)
         reasons: list[str] = []
         if abs(area_delta) > spec.material_area_delta_m2:
             reasons.append("area_delta")
