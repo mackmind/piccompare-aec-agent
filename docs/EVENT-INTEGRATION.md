@@ -38,16 +38,20 @@ The clients read credentials only from the shell environment:
 - `META_SAM_MODEL_ID` — exact SAM 3.1 id; default `sam-3.1` is a seam default,
   confirm the console value.
 - `META_API_BASE` — default `https://api.meta.ai/v1`.
-- `PICCOMPARE_SAM31_DIR` — optional fixture payload directory.
 
 The Meta chat client uses `max_completion_tokens` and strict `json_schema`; it
 does not send `max_output_tokens`. SAM uses the separate `/responses` endpoint.
 
-## Live gates (not yet exercised)
+## Live gates (exercised 2026-10-28)
 
-1. `python scripts/smoke_sam.py --live --image <plan>.png --prompt room`
-2. Run the planner/critic with a live `MetaClient`.
-3. Run the live evaluation and store the receipt.
+1. `python scripts/smoke_sam.py --fixture fixtures/aec/resize-01 --side a --live --box 100,100,500,500`
+2. `python scripts/smoke_meta.py` for the chat/planner/critic path.
+3. `python scripts/run_live_pair.py --fixture fixtures/aec/resize-01 --out runs/live/resize-01 --boxes-from-plan`
+4. `python scripts/run_eval.py --fixtures fixtures --live --out runs/eval/live`
 
-No live call, key or purchase has been made by this repository. Offline fixture
-payloads are deterministic and are not live model output.
+Results are recorded in `docs/LIVE-RUN.md`. The credentialed runs were made by
+the maintainer; the key is never committed, logged or written to a report, and
+none is needed for the offline pipeline. One live receipt is committed as
+`demo/live-report.json` and verifies against the committed fixtures.
+
+Offline fixture payloads are deterministic and are not live model output.

@@ -12,9 +12,10 @@ Event: Meta Global AI Developer Hackathon, Indie Developer track,
 - [x] Read-only engine smoke passes on the 0.55H demo edition and the 0.55
       commercial tree; receipts bind the tree head.
 - [x] Live SAM/Muse receipt: `sam-3.1` and `muse-spark-1.3-contributor` exercised
-      2026-10-28 (see `runs/live/resize-01/report.json`, `usage.provider = live_meta`).
-      SAM only answers on a stream and needs **box prompts** on line art; concept
-      prompts return no objects.
+      2026-10-28 and **committed** as `demo/live-report.json` (`usage.provider =
+      live_meta`, 10 SAM calls, 1 Muse call, report digest `e9fb9a08…`). It verifies
+      against the committed fixtures. SAM only answers on a stream and needs **box
+      prompts** on line art; concept prompts return no objects.
 - [ ] Final public head with the complete event code: **pending boundary review**.
 - [ ] Video URL: **not yet recorded**.
 - [ ] Portal submission: **not yet filed**.
@@ -27,9 +28,9 @@ Event: Meta Global AI Developer Hackathon, Indie Developer track,
 | Engine CLI compare/regions works on a local tree | Yes | `scripts/engine_smoke.py` receipt, head-bound |
 | Measures room resize/wall move on synthetic plans | Yes, synthetic only | 7 verified findings |
 | Refuses split/merge definitions | Yes | 4 definition mismatches; `not_compared` |
-| Report is hashed/replayable | Yes | `python -m aec verify` on the offline and on the live reports (`runs/live/resize-01/report.json` verifies) |
-| Uses live SAM 3.1 and Muse Spark | Yes | `runs/live/resize-01/report.json` (`live_meta`, both model ids, 55 SAM + 1 Muse call); `scripts/smoke_meta.py` and `scripts/smoke_sam.py --live --box` |
-| Live evaluation scores the fixture set | Partial | `runs/eval/live-full2/metrics.json` — 9/12 (both split and both merge refusals matched); misses are 2 label-driven (no OCR) and 2 noise findings. Offline 12/12 is the scored evidence |
+| Report is hashed/replayable | Yes | `python -m aec verify` on the offline sample and on the committed live report (`demo/live-report.json` verifies) |
+| Uses live SAM 3.1 and Muse Spark | Yes | `demo/live-report.json` (`live_meta`, both model ids, 10 SAM + 1 Muse call); `scripts/smoke_meta.py` and `scripts/smoke_sam.py --live --box` |
+| Live evaluation scores the fixture set | Partial | local run `runs/eval/live-full3/metrics.json` (not published) — **10 of 12 pairs clean: 5/11 verified, 4 refusals, 2 missing (label-only), 0 false positives**. Offline 12/12 is the scored evidence |
 | Faster/cheaper than human review | **No** | no human baseline |
 | Real-world accuracy | **No** | synthetic only |
 | Full CAD | **No** | measured SVG/DXF overlay only |
@@ -60,6 +61,8 @@ python -m aec verify --report runs/eval/resize-01/report.json --inputs-dir fixtu
 python scripts/engine_smoke.py --engine-tree <tree> --out runs/engine-smoke  # local engine only
 ```
 
-The demo video is not yet recorded. The live receipts exist (see the checklist); the scored
-evidence is the offline deterministic evaluation, because live masks carry boundary noise and
-no OCR labels are available in this environment.
+The demo video is not yet recorded. The live receipts exist, and one of them is committed
+(`demo/live-report.json`); the scored evidence is the offline deterministic evaluation,
+because live masks carry boundary noise and no OCR labels are available in this environment.
+The live evaluation leaves 10 of 12 pairs clean (5/11 verified, 4 refusals, 2 label-only
+misses, 0 false positives).

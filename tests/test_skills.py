@@ -28,7 +28,10 @@ def test_manifest_tools_are_schema_valid() -> None:
 
 def test_skills_do_not_claim_live_or_signed_capability() -> None:
     aec = (ROOT / "skills" / "piccompare-aec" / "SKILL.md").read_text(encoding="utf-8")
-    assert "not yet exercised" in aec
+    # Round 14: live runs exist; the skill must still scope the default and the
+    # limits, and must keep deferring the live path to the runbook.
+    assert "offline default" in aec
+    assert "docs/LIVE-RUN.md" in aec
     assert "never “signed”" in aec or "never “signed”" in aec
     legal = (ROOT / "skills" / "piccompare-legal" / "SKILL.md").read_text(encoding="utf-8")
     assert "draft" in legal.lower()

@@ -43,7 +43,8 @@ Expected: model id, calls and usage. No key means exit 2 and no request.
 
 ```bash
 META_API_KEY=... META_SAM_MODEL_ID=... \
-python scripts/smoke_sam.py --live --image fixtures/aec/resize-01/a.png --prompt room
+python scripts/smoke_sam.py --fixture fixtures/aec/resize-01 --side a --live \
+  --image fixtures/aec/resize-01/a.png --prompt room
 ```
 
 Expected: object count, model, calls and latency. Validate the live response
@@ -70,9 +71,12 @@ grammar:
 - **Concept prompts do not work on these line-art plans**: `room`, `wall`,
   `door` and `table` each returned **0 objects** on `resize-01/a` and
   `identical-01/a` (live, 2026-10-28). A **box prompt** returns a mask whose
-  polygon matches the ground-truth room (ROOM A: box 97,97–504,503 against
-  100,100–500,500, IoU ≈ 0.95). Propose regions from the plan geometry and let
-  SAM produce the masks; do not expect concept segmentation on line art.
+  polygon matches the ground-truth room: the box `97,97–504,503` against
+  ROOM A `100,100–500,500` decodes to a polygon `97,100–502,499` (IoU ≈ 0.985).
+  On these fixtures the mask largely tracks the proposed box, so the demo shows
+  **segmentation of a proposed region**, not independent room discovery.
+  Propose regions from the plan geometry and let SAM produce the masks; do not
+  expect concept segmentation on line art.
 
 ```bash
 # Box prompt (region proposed by the caller), live:
@@ -85,7 +89,8 @@ python scripts/smoke_sam.py --fixture fixtures/aec/resize-01 --side a --live \
 
 ```bash
 META_API_KEY=... META_MODEL_ID=... META_SAM_MODEL_ID=... \
-python scripts/run_live_pair.py --fixture fixtures/aec/resize-01 --out runs/live/resize-01
+python scripts/run_live_pair.py --fixture fixtures/aec/resize-01 \
+  --out runs/live/resize-01 --boxes-from-plan
 ```
 
 Expected: a live report with receipt fields, verified/not-compared counts and a
@@ -104,28 +109,34 @@ definition guard failed.
   JSON smoke. Muse is a reasoning model: reasoning tokens count against
   `max_completion_tokens`, and the AEC critic needed **8192** (at 2048 it hit
   `finish_reason=length` with empty content on a real review context).
-- **SAM: PASS with box prompts** — a mask decoded and matched the room polygon
-  (ROOM A: 97,97–504,503 against ground truth 100,100–500,500, IoU ≈ 0.95).
+- **SAM: PASS with box prompts** — the box `97,97–504,503` decoded to a polygon
+  `97,100–502,499`, so the mask tracks ROOM A (`100,100–500,500`, IoU ≈ 0.985).
 - **SAM concept prompts: 0 objects** on `resize-01/a`, `identical-01/a`,
   `merge-01/a` for `room`, `wall`, `door` and `table`. Propose regions from the
   plan geometry (`aec.propose.propose_boxes`, `--boxes-from-plan`) and let SAM
   segment each box; that recovers every room on all seven fixtures at IoU
   0.92–0.96.
-- **One live pair** (`resize-01`, proposed regions): 5 verified findings, 0 not
-  compared, 0 rejected, report digest `f6965242…`, receipts `live_meta`,
-  `sam-3.1`, `muse-spark-1.3-contributor`, 55 SAM calls. The live report
-  **verifies** (`python -m aec verify --report runs/live/resize-01/report.json
-  --inputs-dir fixtures/aec/resize-01` → PASS), so the hashed-and-replayable
-  claim covers live evidence too.
-- **The live eval scores 9 of 12 pairs** (`run_eval.py --live --fixtures fixtures`,
-  2026-10-28): identical, noise, merge-01/02 and split-01/02 (four refusals), resize-02 and
-  wall_move-01/02 pass. The three misses are the known limits below, not tuning:
-  - **no plan labels without OCR** — `label_change-01` (and the label part of `mixed-01`) cannot
-    be seen; SAM returns no text;
-  - **residual mask noise** — two false `room_resized` findings across 12 pairs at the 5× band
-    (`resize-01`, `mixed-01`).
-  Splits are refused live because a proposed box that two or more children fill is dropped in
-  favour of the finer partition. Live masks are simplified to plan-like vertices and the
-  comparison tolerances are widened 5× (recorded in each report's usage note); scoring aligns
-  live elements to ground-truth rooms by polygon IoU because SAM supplies no labels. Offline
-  remains 12/12.
+- **One live pair** (`resize-01`, proposed regions): 1 verified finding (ROOM A
+  16.040 → 17.988 m²), 0 not compared, 0 rejected, report digest `e9fb9a08…`,
+  receipts `live_meta`, `sam-3.1`, `muse-spark-1.3-contributor`, **10 SAM calls**
+  and 1 Muse call. The report is committed as `demo/live-report.json` and
+  **verifies**, so the hashed-and-replayable claim covers live evidence too.
+- **The live eval leaves 10 of 12 pairs clean** (`run_eval.py --fixtures fixtures
+  --live --out runs/eval/live`, 2026-10-28): of the 11 expected findings,
+  **5 verified, 4 definition mismatches refused** (merge-01/02, split-01/02),
+  **2 missing** and **0 false positives**. Both misses are label-only changes
+  (`label_change-01`, part of `mixed-01`): SAM returns no text and this
+  environment has no OCR. Offline remains 12/12 and is the scored evidence.
+- **Policy, disclosed in every live report.** Mask contours are simplified to
+  plan-like vertices (6 px); `dimension_tolerance_px` and `angle_tolerance_deg`
+  are widened 5× and the material area delta is floored at 0.3 m² (the noise a
+  400 px mask edge produces), so `area_tolerance_m2` is not consulted; scoring
+  aligns live elements to ground-truth rooms by polygon IoU, because SAM supplies
+  no labels. When two element polygons have different vertex counts they are
+  compared on a common resampling, not by zipping unlike edges. A box whose
+  segmentation fails is counted and skipped, not fatal, and one proposed region
+  per plan is not a room (title block/scale-bar band), so it is compared like any
+  other element.
+- **The demo banner is an edition notice.** Every report starts with
+  `HACKATHON DEMO — NOT AN EVIDENCE RECORD`; it marks the demo edition, it does
+  not withdraw the hashed, replayable report contract.

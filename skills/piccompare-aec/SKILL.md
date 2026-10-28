@@ -40,6 +40,7 @@ The report is hashed and replayable; it is never “signed”.
 
 - Synthetic clean plans only in the current public workflow.
 - No semantic CAD reconstruction; SVG/DXF are measured overlays, not full CAD.
-- No live SAM or Muse call in the offline default; live calls require credentials
-  and are not yet exercised by this repo.
+- The offline default makes no model call. A live SAM/Muse run needs credentials
+  and is documented in `docs/LIVE-RUN.md`; it leaves 10 of 12 fixture pairs clean,
+  missing the two label-only changes for want of OCR.
 - No art authentication, cartography or surveying coordinate support.

@@ -1,0 +1,859 @@
+{
+  "schema_version": "piccompare-aec-report/1.0",
+  "demo_notice": "HACKATHON DEMO \u2014 NOT AN EVIDENCE RECORD",
+  "generated_at": "2026-10-28T11:15:51+00:00",
+  "engine": {
+    "name": "external",
+    "mode": "live_meta"
+  },
+  "inputs": {
+    "a": "a.png",
+    "b": "b.png"
+  },
+  "settings": {
+    "variant": "resize",
+    "mode": "live_meta"
+  },
+  "plan": {
+    "pair_id": "resize-01",
+    "units": "m",
+    "px_per_unit": 100.0,
+    "element_types": [
+      "room"
+    ],
+    "area_tolerance_m2": 0.05,
+    "dimension_tolerance_px": 10.0,
+    "angle_tolerance_deg": 5.0,
+    "material_area_delta_m2": 0.3,
+    "match_iou_threshold": 0.5,
+    "match_centroid_tolerance_px": 50.0,
+    "match_area_ratio_tolerance": 0.25,
+    "scale_source": "scale_bar"
+  },
+  "pages": [
+    {
+      "page": 0,
+      "width": 1600,
+      "height": 1200
+    }
+  ],
+  "elements_a": [
+    {
+      "element_id": "resize-01:a:0:room:0",
+      "room_id": null,
+      "page": 0,
+      "element_type": "room",
+      "label": "room",
+      "polygon_px": [
+        [
+          597.0,
+          102.0
+        ],
+        [
+          600.0,
+          501.0
+        ],
+        [
+          1002.0,
+          497.0
+        ],
+        [
+          1002.0,
+          101.0
+        ],
+        [
+          597.0,
+          102.0
+        ]
+      ],
+      "area_px2": 160395.0,
+      "area_m2": 16.0395,
+      "centroid_px": [
+        799.9937342186477,
+        300.0062346083107
+      ],
+      "segments_px": [
+        399.0112780360976,
+        402.01990000496244,
+        396.0,
+        405.00123456601955
+      ],
+      "angles_deg": [
+        89.710684,
+        89.860699,
+        90.570088,
+        89.858529
+      ],
+      "source_objects": [
+        "resize-01:a:0:room:0"
+      ],
+      "confidence": 0.0
+    },
+    {
+      "element_id": "resize-01:a:0:room:1",
+      "room_id": null,
+      "page": 0,
+      "element_type": "room",
+      "label": "room",
+      "polygon_px": [
+        [
+          97.0,
+          102.0
+        ],
+        [
+          101.0,
+          501.0
+        ],
+        [
+          502.0,
+          498.0
+        ],
+        [
+          501.0,
+          100.0
+        ],
+        [
+          97.0,
+          102.0
+        ]
+      ],
+      "area_px2": 160402.5,
+      "area_m2": 16.04025,
+      "centroid_px": [
+        300.1627156683967,
+        300.003544209099
+      ],
+      "segments_px": [
+        399.02004962156974,
+        401.01122178811903,
+        398.0012562794243,
+        404.00495046471895
+      ],
+      "angles_deg": [
+        89.709266,
+        90.145736,
+        90.28468,
+        89.860319
+      ],
+      "source_objects": [
+        "resize-01:a:0:room:1"
+      ],
+      "confidence": 0.0
+    },
+    {
+      "element_id": "resize-01:a:0:room:2",
+      "room_id": null,
+      "page": 0,
+      "element_type": "room",
+      "label": "room",
+      "polygon_px": [
+        [
+          596.0,
+          601.0
+        ],
+        [
+          598.0,
+          901.0
+        ],
+        [
+          1002.0,
+          902.0
+        ],
+        [
+          1001.0,
+          599.0
+        ],
+        [
+          596.0,
+          601.0
+        ]
+      ],
+      "area_px2": 121957.5,
+      "area_m2": 12.19575,
+      "centroid_px": [
+        799.5849524082843,
+        750.6865451762568
+      ],
+      "segments_px": [
+        300.00666659259423,
+        404.0012376218667,
+        303.00165016052307,
+        405.0049382414985
+      ],
+      "angles_deg": [
+        89.900974,
+        90.523787,
+        89.669085,
+        89.906154
+      ],
+      "source_objects": [
+        "resize-01:a:0:room:2"
+      ],
+      "confidence": 0.0
+    },
+    {
+      "element_id": "resize-01:a:0:room:3",
+      "room_id": null,
+      "page": 0,
+      "element_type": "room",
+      "label": "room",
+      "polygon_px": [
+        [
+          98.0,
+          601.0
+        ],
+        [
+          97.0,
+          900.0
+        ],
+        [
+          502.0,
+          901.0
+        ],
+        [
+          503.0,
+          600.0
+        ],
+        [
+          98.0,
+          601.0
+        ]
+      ],
+      "area_px2": 121500.0,
+      "area_m2": 12.15,
+      "centroid_px": [
+        300.2249986282579,
+        750.5004115226337
+      ],
+      "segments_px": [
+        299.00167223612647,
+        405.00123456601955,
+        301.0016611249845,
+        405.00123456601955
+      ],
+      "angles_deg": [
+        90.333095,
+        89.949847,
+        90.04888,
+        89.668179
+      ],
+      "source_objects": [
+        "resize-01:a:0:room:3"
+      ],
+      "confidence": 0.0
+    },
+    {
+      "element_id": "resize-01:a:0:room:4",
+      "room_id": null,
+      "page": 0,
+      "element_type": "room",
+      "label": "room",
+      "polygon_px": [
+        [
+          1051.0,
+          1001.0
+        ],
+        [
+          1053.0,
+          1131.0
+        ],
+        [
+          1499.0,
+          1130.0
+        ],
+        [
+          1496.0,
+          1000.0
+        ],
+        [
+          1051.0,
+          1001.0
+        ]
+      ],
+      "area_px2": 57917.5,
+      "area_m2": 5.79175,
+      "centroid_px": [
+        1274.751108617142,
+        1065.524314758061
+      ],
+      "segments_px": [
+        130.01538370516005,
+        446.0011210748242,
+        130.034610777285,
+        445.0011235940871
+      ],
+      "angles_deg": [
+        89.24735,
+        90.752938,
+        88.80649,
+        91.193221
+      ],
+      "source_objects": [
+        "resize-01:a:0:room:4"
+      ],
+      "confidence": 0.0
+    }
+  ],
+  "elements_b": [
+    {
+      "element_id": "resize-01:b:0:room:0",
+      "room_id": null,
+      "page": 0,
+      "element_type": "room",
+      "label": "room",
+      "polygon_px": [
+        [
+          97.0,
+          102.0
+        ],
+        [
+          100.0,
+          501.0
+        ],
+        [
+          552.0,
+          497.0
+        ],
+        [
+          550.0,
+          101.0
+        ],
+        [
+          97.0,
+          102.0
+        ]
+      ],
+      "area_px2": 179875.0,
+      "area_m2": 17.9875,
+      "centroid_px": [
+        324.46444290016217,
+        300.17975445911514
+      ],
+      "segments_px": [
+        399.0112780360976,
+        452.01769876853274,
+        396.00505047284435,
+        453.0011037514147
+      ],
+      "angles_deg": [
+        89.695693,
+        89.923758,
+        90.217659,
+        90.16289
+      ],
+      "source_objects": [
+        "resize-01:b:0:room:0"
+      ],
+      "confidence": 0.0
+    },
+    {
+      "element_id": "resize-01:b:0:room:1",
+      "room_id": null,
+      "page": 0,
+      "element_type": "room",
+      "label": "room",
+      "polygon_px": [
+        [
+          597.0,
+          101.0
+        ],
+        [
+          595.0,
+          426.0
+        ],
+        [
+          602.0,
+          502.0
+        ],
+        [
+          1002.0,
+          497.0
+        ],
+        [
+          1002.0,
+          101.0
+        ],
+        [
+          597.0,
+          101.0
+        ]
+      ],
+      "area_px2": 161616.0,
+      "area_m2": 16.1616,
+      "centroid_px": [
+        798.8048243985744,
+        300.1667563855064
+      ],
+      "segments_px": [
+        325.0061537878937,
+        76.32168761236873,
+        400.03124877939223,
+        396.0,
+        405.0
+      ],
+      "angles_deg": [
+        90.352585,
+        174.38502,
+        94.546235,
+        90.71616,
+        90.0
+      ],
+      "source_objects": [
+        "resize-01:b:0:room:1"
+      ],
+      "confidence": 0.0
+    },
+    {
+      "element_id": "resize-01:b:0:room:2",
+      "room_id": null,
+      "page": 0,
+      "element_type": "room",
+      "label": "room",
+      "polygon_px": [
+        [
+          596.0,
+          601.0
+        ],
+        [
+          598.0,
+          901.0
+        ],
+        [
+          1002.0,
+          902.0
+        ],
+        [
+          1002.0,
+          599.0
+        ],
+        [
+          596.0,
+          601.0
+        ]
+      ],
+      "area_px2": 122108.0,
+      "area_m2": 12.2108,
+      "centroid_px": [
+        799.835129557441,
+        750.624894901781
+      ],
+      "segments_px": [
+        300.00666659259423,
+        404.0012376218667,
+        303.0,
+        406.00492607848986
+      ],
+      "angles_deg": [
+        89.900277,
+        90.523787,
+        89.858179,
+        89.717757
+      ],
+      "source_objects": [
+        "resize-01:b:0:room:2"
+      ],
+      "confidence": 0.0
+    },
+    {
+      "element_id": "resize-01:b:0:room:3",
+      "room_id": null,
+      "page": 0,
+      "element_type": "room",
+      "label": "room",
+      "polygon_px": [
+        [
+          98.0,
+          601.0
+        ],
+        [
+          100.0,
+          902.0
+        ],
+        [
+          502.0,
+          901.0
+        ],
+        [
+          502.0,
+          599.0
+        ],
+        [
+          98.0,
+          601.0
+        ]
+      ],
+      "area_px2": 121506.0,
+      "area_m2": 12.1506,
+      "centroid_px": [
+        300.61014270900205,
+        750.624693430777
+      ],
+      "segments_px": [
+        301.0066444449358,
+        402.0012437791704,
+        302.0,
+        404.00495046471895
+      ],
+      "angles_deg": [
+        89.902943,
+        90.238171,
+        90.142527,
+        89.71636
+      ],
+      "source_objects": [
+        "resize-01:b:0:room:3"
+      ],
+      "confidence": 0.0
+    },
+    {
+      "element_id": "resize-01:b:0:room:4",
+      "room_id": null,
+      "page": 0,
+      "element_type": "room",
+      "label": "room",
+      "polygon_px": [
+        [
+          1050.0,
+          1002.0
+        ],
+        [
+          1053.0,
+          1131.0
+        ],
+        [
+          1499.0,
+          1130.0
+        ],
+        [
+          1496.0,
+          1000.0
+        ],
+        [
+          1050.0,
+          1002.0
+        ]
+      ],
+      "area_px2": 57761.5,
+      "area_m2": 5.77615,
+      "centroid_px": [
+        1274.7869659432897,
+        1065.748474329787
+      ],
+      "segments_px": [
+        129.0348790056394,
+        446.0011210748242,
+        130.034610777285,
+        446.0044842823892
+      ],
+      "angles_deg": [
+        88.92471,
+        91.203754,
+        88.80649,
+        91.065046
+      ],
+      "source_objects": [
+        "resize-01:b:0:room:4"
+      ],
+      "confidence": 0.0
+    }
+  ],
+  "matches": [
+    {
+      "a_id": "resize-01:a:0:room:0",
+      "b_id": "resize-01:b:0:room:1",
+      "status": "matched",
+      "iou": 0.9921800482599578,
+      "centroid_delta_px": 1.1996973790171854,
+      "area_ratio": 0.992445054945055,
+      "reasons": [
+        "iou and centroid within tolerance"
+      ]
+    },
+    {
+      "a_id": "resize-01:a:0:room:1",
+      "b_id": "resize-01:b:0:room:0",
+      "status": "matched",
+      "iou": 0.8882023868982546,
+      "centroid_delta_px": 24.302366067923156,
+      "area_ratio": 0.8917442668519805,
+      "reasons": [
+        "iou and centroid within tolerance"
+      ]
+    },
+    {
+      "a_id": "resize-01:a:0:room:2",
+      "b_id": "resize-01:b:0:room:2",
+      "status": "matched",
+      "iou": 0.9987511561224183,
+      "centroid_delta_px": 0.2576613325726431,
+      "area_ratio": 0.9987674845218987,
+      "reasons": [
+        "iou and centroid within tolerance"
+      ]
+    },
+    {
+      "a_id": "resize-01:a:0:room:3",
+      "b_id": "resize-01:b:0:room:3",
+      "status": "matched",
+      "iou": 0.990171855659802,
+      "centroid_delta_px": 0.4046998339807064,
+      "area_ratio": 0.9999506197224829,
+      "reasons": [
+        "iou and centroid within tolerance"
+      ]
+    },
+    {
+      "a_id": "resize-01:a:0:room:4",
+      "b_id": "resize-01:b:0:room:4",
+      "status": "matched",
+      "iou": 0.9950504584957128,
+      "centroid_delta_px": 0.22700938622627317,
+      "area_ratio": 0.9973065135753443,
+      "reasons": [
+        "iou and centroid within tolerance"
+      ]
+    }
+  ],
+  "measurements": [
+    {
+      "element_id": "resize-01:a:0:room:0",
+      "status": "no_material_change",
+      "area_delta_m2": 0.1221,
+      "segment_deltas_px": [
+        0.027223,
+        0.027223,
+        1.361729,
+        0.650306,
+        0.027223,
+        0.027223,
+        0.135135,
+        0.027223,
+        0.118292,
+        0.027223,
+        0.027223,
+        0.027223
+      ],
+      "angle_deltas_deg": [
+        0.641901,
+        0.0,
+        2.52894,
+        1.916807,
+        0.317308,
+        0.0,
+        0.216783,
+        0.070711,
+        0.038609,
+        0.102861,
+        0.0,
+        0.0
+      ],
+      "reasons": []
+    },
+    {
+      "element_id": "resize-01:a:0:room:1",
+      "status": "comparable",
+      "area_delta_m2": 1.94725,
+      "segment_deltas_px": [
+        0.008772,
+        51.006477,
+        1.996206,
+        48.996153
+      ],
+      "angle_deltas_deg": [
+        0.013573,
+        0.221978,
+        0.067021,
+        0.302571
+      ],
+      "reasons": [
+        "area_delta",
+        "segment_delta"
+      ]
+    },
+    {
+      "element_id": "resize-01:a:0:room:2",
+      "status": "no_material_change",
+      "area_delta_m2": 0.01505,
+      "segment_deltas_px": [
+        0.0,
+        0.0,
+        0.00165,
+        0.999988
+      ],
+      "angle_deltas_deg": [
+        0.000697,
+        0.0,
+        0.189094,
+        0.188397
+      ],
+      "reasons": []
+    },
+    {
+      "element_id": "resize-01:a:0:room:3",
+      "status": "no_material_change",
+      "area_delta_m2": 0.0006,
+      "segment_deltas_px": [
+        2.004972,
+        2.999991,
+        0.998339,
+        0.996284
+      ],
+      "angle_deltas_deg": [
+        0.430152,
+        0.288324,
+        0.093647,
+        0.048181
+      ],
+      "reasons": []
+    },
+    {
+      "element_id": "resize-01:a:0:room:4",
+      "status": "no_material_change",
+      "area_delta_m2": -0.0156,
+      "segment_deltas_px": [
+        0.980505,
+        0.0,
+        0.0,
+        1.003361
+      ],
+      "angle_deltas_deg": [
+        0.32264,
+        0.450816,
+        0.0,
+        0.128175
+      ],
+      "reasons": []
+    }
+  ],
+  "findings": [
+    {
+      "finding_id": "room_resized:resize-01:a:0:room:1",
+      "change_type": "room_resized",
+      "element_ids": [
+        "resize-01:a:0:room:1",
+        "resize-01:b:0:room:0"
+      ],
+      "materiality": "high",
+      "status": "verified",
+      "claim": "area_delta; segment_delta; area 16.040 -> 17.988 m2 (delta +1.947)",
+      "evidence_refs": [
+        "resize-01:a:0:room:1",
+        "resize-01:b:0:room:0"
+      ],
+      "measurement_refs": [
+        "measurement:resize-01:a:0:room:1"
+      ],
+      "reasons": [
+        "area_delta",
+        "segment_delta",
+        "area_delta",
+        "segment_delta"
+      ]
+    }
+  ],
+  "rejected": [],
+  "not_compared": [],
+  "evidence": {
+    "inputs": {
+      "a.png": "96e6c416852b0ad65aee5ecaaa5a1c83a5e9144df30a41ad18935c060c640bca",
+      "b.png": "d08c2a5bcd886c8b57a6c05ed92eb83b08eb1b1d0ddcff25f4fbff8c634f4c7e"
+    },
+    "elements": {
+      "resize-01:a:0:room:0": "44a79a4d4fea7413902345d797e3f03c6e871db11aee629d9b128bb60ef93ade",
+      "resize-01:a:0:room:1": "d5d6f7aa878979643344b5264678bdebc1c139fcd7b7ec939a3d28a178162ab8",
+      "resize-01:a:0:room:2": "2168c413832c7969805398bec51987525bc7ccefb83074fdf2719f478c8987d8",
+      "resize-01:a:0:room:3": "3a8af85c2d9015106163439004776d0dfbb4f51b5b1d1b274ac953b481c73c48",
+      "resize-01:a:0:room:4": "b46c78a6fc9c5263e223075a6c609c1ebfd513467512d2c2587b5977970307e2",
+      "resize-01:b:0:room:0": "f4ba9dfd92968adcb12ff91e0938e8a4e64b2e030848969bafb6c622556ac2ec",
+      "resize-01:b:0:room:1": "5cd70ae407cbac5f7f7a2041626455e2583741d922c0425cd44f398659ef1a4e",
+      "resize-01:b:0:room:2": "f25aaba39b40984644c2d4f775f071180d07a1486313fe7124b0607a42447349",
+      "resize-01:b:0:room:3": "84956a9f0ecf4c1d4803e7b67a173f9069d22d367cd4d668116e57f94e36d465",
+      "resize-01:b:0:room:4": "76e7fc0bb7cddf38fe3633c7cfcb0950136ca3ce18b84de3b2873b9f473326d5"
+    },
+    "measurements": {
+      "resize-01:a:0:room:0": "7c22a389719a08a8858e7d6297ebfecc35d00b8097099d48b6950271d04ef158",
+      "resize-01:a:0:room:1": "3474658b5e6f563156e73a78ceafe11b9a9772b0e65cc31b1ef1f346bdaa4226",
+      "resize-01:a:0:room:2": "8ac8a70b46a60d99ae8af61aaaffe308ea04bccba80ee03739e4a01a87d2e7ff",
+      "resize-01:a:0:room:3": "9d9a6abd4c4d45457a974709251fd01655acb023fe0cab211dff0a9de82f10c0",
+      "resize-01:a:0:room:4": "5fc55bffa8a64295d74f2a7dbeb76f4f160c2b6acb34913c39ca9204452d3a9e"
+    },
+    "receipts": {
+      "sam": {
+        "model": "sam-3.1",
+        "calls": 10,
+        "usage": {
+          "a": {
+            "images_processed": 5,
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "total_tokens": 0
+          },
+          "b": {
+            "images_processed": 5,
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "total_tokens": 0
+          }
+        }
+      },
+      "meta": {
+        "model": "muse-spark-1.3-contributor",
+        "calls": 1,
+        "usage": {
+          "completion_tokens": 1338,
+          "prompt_tokens": 1532,
+          "total_tokens": 2870,
+          "completion_tokens_details": {
+            "reasoning_tokens": 1267
+          },
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        }
+      }
+    }
+  },
+  "usage": {
+    "provider": "live_meta",
+    "sam_model": "sam-3.1",
+    "meta_model": "muse-spark-1.3-contributor",
+    "model": "muse-spark-1.3-contributor",
+    "network": true,
+    "meta_api_calls": 1,
+    "sam_calls": 10,
+    "sam_usage": {
+      "a": {
+        "images_processed": 5,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "total_tokens": 0
+      },
+      "b": {
+        "images_processed": 5,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "total_tokens": 0
+      }
+    },
+    "meta_usage": {
+      "completion_tokens": 1338,
+      "prompt_tokens": 1532,
+      "total_tokens": 2870,
+      "completion_tokens_details": {
+        "reasoning_tokens": 1267
+      },
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      }
+    },
+    "fallback_used": false,
+    "note": "Live run; receipts are recorded from the clients. Live mask precision: segment 10.0 px and angle 5.0 deg (5.0x the plan's); material area delta 0.30 m2 (floor 0.3 m2). area_tolerance_m2 is not consulted by the comparison."
+  },
+  "limitations": [
+    "Live SAM masks carry boundary noise; segment/angle tolerances are 5.0x the plan's and the material area delta is floored at 0.3 m2 (see the usage note).",
+    "SAM supplies no room labels; the evaluator aligns live elements to ground-truth rooms by polygon IoU (scoring only).",
+    "A proposed region that is not a room (title block, scale bar) is compared like any other element.",
+    "Synthetic fixture used for this live-path test only; no real-world claim."
+  ],
+  "digest": "e9fb9a0822a1d3f8741768188e5f5c2b591cf9ee618ac70609b8b5643330fbb7"
+}

@@ -27,7 +27,9 @@ Each pair contains:
   changes/findings.
 - `sam31.json` — deterministic SAM-3.1-shaped mask/bbox payloads for both
   sides, used by the offline adapter tests.
-- `fixtures/manifest.json` — SHA-256 of every generated file.
+
+`fixtures/manifest.json` is global, not per pair: it holds the SHA-256 of every
+generated file in all 12 pairs.
 
 ## Scale and units
 
@@ -42,8 +44,8 @@ python scripts/verify_fixtures.py --offline --geometry-only
 ```
 
 The geometry verifier checks manifest hashes, closed polygons, exact areas and
-change references. The generator/verifier evaluation in Task 12 adds the
-pipeline and metrics.
+change references; `scripts/run_eval.py` adds the pipeline evaluation and the
+metrics (`runs/eval/metrics.json`).
 
 ## Limitations
 

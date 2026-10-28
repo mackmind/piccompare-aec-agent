@@ -143,7 +143,7 @@ def _score_pair(result: PairResult, truth: dict[str, Any]) -> dict[str, Any]:
         "unexpected_not_compared": unexpected_not_compared,
         "baseline_flagged_changes": len(expected),
         "agent_refused_changes": len(expected_not_compared),
-        "passed": not missing and not false_positives,
+        "passed": not missing and not false_positives and not unexpected_not_compared,
         "room_alignment": alignment,
         "report": str(result.report_path) if result.report_path else None,
     }

@@ -29,9 +29,16 @@ The **offline deterministic pipeline is implemented and tested**:
 - A read-only engine smoke (`capabilities`/`compare`/`regions`) passes against
   the 0.55H demo edition and the 0.55 commercial tree; each receipt is bound to
   the tree head. The engine remains an external dependency.
-- **Live SAM 3.1 and Muse Spark calls are not yet exercised.** The clients and
-  seams exist; live runs need credentials and are marked blocked. This is not a
-  live-model submission yet.
+- **The live SAM 3.1 and Muse Spark path is exercised** (2026-10-28). One live
+  pair, `resize-01`, is committed as [demo/live-report.json](demo/live-report.json):
+  it records 10 SAM calls and 1 Muse call and reports the one real change. It
+  verifies with the same command as any other report:
+  `python -m aec verify --report demo/live-report.json --inputs-dir fixtures/aec/resize-01`.
+  The live fixture evaluation is **10 of 12 pairs clean — 5 of 11 expected
+  findings verified, 4 definition mismatches refused, 2 findings missed (label-only
+  changes, no OCR) and 0 false positives**; the details and the scoring policy are
+  in [docs/LIVE-RUN.md](docs/LIVE-RUN.md). The offline 12/12 evaluation remains the
+  scored evidence.
 
 ## Quick start
 
@@ -48,7 +55,8 @@ py -3.13 -m venv .venv-aec
 ```
 
 Inspect the committed sample evidence:
-[demo/sample-report.md](demo/sample-report.md) and the measured overlay
+[demo/sample-report.md](demo/sample-report.md), the live receipt
+[demo/live-report.md](demo/live-report.md) and the measured overlay
 [demo/overlays/resize-01.svg](demo/overlays/resize-01.svg).
 
 Run the gates:
@@ -93,7 +101,9 @@ Definition mismatches are listed under `not_compared`, never as verified changes
 - Synthetic, clean plans only; no real-world accuracy claim.
 - No OCR, furniture, dimensions or title-block semantic understanding.
 - No full CAD reconstruction; SVG/DXF contain measured overlays only.
-- Live SAM/Muse runs are not exercised in this repository yet.
+- Live masks carry boundary noise, so a live comparison widens tolerances
+  (`docs/LIVE-RUN.md`) and cannot see label-only changes without OCR; see
+  `docs/LIMITATIONS.md`.
 - No art authentication, cartography or surveying coordinate support.
 
 ## Licence

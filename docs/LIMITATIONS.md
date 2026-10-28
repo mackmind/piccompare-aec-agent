@@ -4,9 +4,13 @@
   exact ground truth. They do not represent scanned, noisy or real customer
   drawings.
 - **Live evidence exists, with limits.** SAM 3.1 and Muse Spark were exercised live on
-  2026-10-28 and the live evaluation scores **9 of 12** pairs, including both split refusals and
-  both merge refusals. It cannot see plan labels (no OCR in this environment) and two residual
-  mask-noise findings remain. The offline deterministic run is 12/12 and is the scored evidence.
+  2026-10-28. The live evaluation leaves **10 of 12** pairs clean — 5 of 11 expected
+  findings verified, 4 definition mismatches refused, 2 findings missed and 0 false
+  positives. Both misses are label-only changes: SAM returns no text and this
+  environment has no OCR. SAM also answers only box prompts on line art, so regions
+  are proposed from the plan geometry, and the live comparison widens its segment/
+  angle tolerances and floors the material area delta (see `docs/LIVE-RUN.md`).
+  The offline deterministic run is 12/12 and is the scored evidence.
 - **No real-world accuracy claim.** The 12/12 result is a synthetic evaluation,
   not a human-time or production-accuracy study.
 - **No full CAD.** SVG and DXF contain measured room polygons, labels, areas and

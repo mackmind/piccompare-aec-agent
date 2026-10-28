@@ -1,8 +1,9 @@
 # AEC demo video plan
 
 **Status:** both cuts can be recorded. The offline cut is deterministic and scored (12/12).
-The live cut is available since 2026-10-28 — Muse and SAM 3.1 both answer live — and it must
-show the receipts from `runs/live/`; if the live cut is used, say on screen that regions are
+The live cut is available since 2026-10-28 — Muse and SAM 3.1 both answer live — and it can
+show the committed live receipt `demo/live-report.json` (or `runs/live/` locally); if the live
+cut is used, say on screen that regions are
 proposed from the plan geometry because SAM 3.1 does not answer concept prompts on line art,
 and that the live comparison band is widened for mask noise. Hard cap: 3:00.
 

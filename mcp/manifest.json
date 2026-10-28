@@ -24,15 +24,15 @@
       "transport": "cli",
       "status": "available",
       "input_schema": {"report": "string", "format": "svg|dxf|both", "out": "string"},
-      "example": "python -m aec export --report report.json --out runs/export"
+      "example": "python -m aec export --report runs/measure/resize-01/report.json --out runs/export"
     },
     {
       "name": "aec.engine_info",
-      "description": "Resolve an external PicCompare 054H/055H engine tree by manifest or explicit path.",
+      "description": "Resolve an external PicCompare engine tree by manifest or explicit path.",
       "transport": "cli",
       "status": "available",
       "input_schema": {"workspace_root": "string|null", "engine_tree": "string|null"},
-      "example": "python -m aec engine-info --engine-tree ../PicCompare_0.54H"
+      "example": "python -m aec engine-info --engine-tree ../PicCompare_0.55C"
     },
     {
       "name": "aec.batch",
@@ -44,10 +44,10 @@
     },
     {
       "name": "aec.eval",
-      "description": "Run the offline deterministic evaluation over verified fixtures.",
+      "description": "Run the fixture evaluation, offline (deterministic) or live (Meta API).",
       "transport": "cli",
       "status": "available",
-      "input_schema": {"fixtures": "string", "out": "string", "pairs": "string[]|null"},
+      "input_schema": {"fixtures": "string", "out": "string", "pairs": "string[]|null", "live": "boolean"},
       "example": "python scripts/run_eval.py --fixtures fixtures --out runs/eval"
     },
     {

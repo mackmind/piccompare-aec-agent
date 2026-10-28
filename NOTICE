@@ -14,5 +14,7 @@ Third-party Python packages retain their own licences:
 - ezdxf: MIT
 - Pillow: MIT-CMU
 - pydantic: MIT
+- meta-sam-parser: SAM License (optional `[live]` extra, not redistributed here;
+  used only to decode SAM mask payloads when running live)
 
 No third-party asset is included in this scaffold.
