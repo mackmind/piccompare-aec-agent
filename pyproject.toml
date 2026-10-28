@@ -67,6 +67,13 @@ files = ["src/aec"]
 module = ["shapely.*", "cv2.*", "ezdxf.*"]
 ignore_missing_imports = true
 
+# The mask decoder is the optional `[live]` extra; CI installs only `[dev]`, so
+# the stub has to be optional too or the Linux leg fails a type check it cannot
+# satisfy without the SAM-licensed package.
+[[tool.mypy.overrides]]
+module = ["meta_sam_parser.*"]
+ignore_missing_imports = true
+
 [tool.coverage.run]
 source = ["src/aec"]
 omit = ["src/aec/cli.py"]
