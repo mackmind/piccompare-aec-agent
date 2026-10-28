@@ -44,7 +44,7 @@ def _live_plan(plan: PlanSpec) -> PlanSpec:
 
     SAM mask contours sit a pixel or two off the drawn edge, which is inside the
     fixtures' design tolerances for exact polygons but not for masks. The
-    multiplier is disclosed in the report's settings and limitations.
+    multiplier is disclosed in the report's usage note and limitations.
     """
     m = LIVE_NOISE_MULTIPLIER
     return plan.model_copy(update={
