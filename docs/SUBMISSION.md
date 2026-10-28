@@ -29,6 +29,7 @@ Event: Meta Global AI Developer Hackathon, Indie Developer track,
 | Refuses split/merge definitions | Yes | 4 definition mismatches; `not_compared` |
 | Report is hashed/replayable | Yes | `python -m aec verify` |
 | Uses live SAM 3.1 and Muse Spark | Yes | `runs/live/resize-01/report.json` (`live_meta`, both model ids, 55 SAM + 1 Muse call); `scripts/smoke_meta.py` and `scripts/smoke_sam.py --live --box` |
+| Live evaluation scores the fixture set | Partial | `runs/eval/live-full/metrics.json` — 8/12; misses are no OCR labels, one smoothed thin partition and 2 noise findings. Offline 12/12 is the scored evidence |
 | Faster/cheaper than human review | **No** | no human baseline |
 | Real-world accuracy | **No** | synthetic only |
 | Full CAD | **No** | measured SVG/DXF overlay only |

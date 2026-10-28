@@ -114,8 +114,14 @@ definition guard failed.
 - **One live pair** (`resize-01`, proposed regions): 5 verified findings, 0 not
   compared, 0 rejected, report digest `f6965242…`, receipts `live_meta`,
   `sam-3.1`, `muse-spark-1.3-contributor`, 55 SAM calls.
-- **The live eval does not yet score.** SAM supplies no room identity and its
-  masks carry ~0.05 m² of boundary noise, so `run_eval.py --live` sees false
-  `room_resized` findings and cannot align a refusal with the ground-truth room
-  ids. Use the offline deterministic path for scored evidence and the live
-  receipts as proof that the API path works.
+- **The live eval scores 8 of 12 pairs** (`run_eval.py --live --fixtures fixtures`,
+  2026-10-28): identical, noise, merge-01/02 (refusals), resize-02, split-02 (refusal) and
+  wall_move-01/02 pass. The four misses are the known limits below, not tuning:
+  - **no plan labels without OCR** — `label_change-01` (and the label part of `mixed-01`) cannot
+    be seen; SAM returns no text;
+  - **thin partitions are smoothed** — on `split-01` SAM's box mask covers the whole room, so the
+    split is not refused (the offline vector path does refuse it);
+  - **residual mask noise** — two false `room_resized` findings across 12 pairs at the 5× band.
+  Live masks are simplified to plan-like vertices and the comparison tolerances are widened 5×
+  (recorded in each report's usage note); scoring aligns live elements to ground-truth rooms by
+  polygon IoU because SAM supplies no labels. Offline remains 12/12.
