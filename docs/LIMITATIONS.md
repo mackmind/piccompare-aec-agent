@@ -13,7 +13,9 @@ the submission, not caveats added afterwards.
   refused, 2 label-only findings missed (SAM returns no text and this environment
   has no OCR, or text reading), and 0 false changes. SAM answers only box prompts
   on line art, and the outline largely follows the proposed box, so the demo shows
-  segmentation of a proposed region, not independent room discovery. Live comparisons widen the
+  segmentation of a proposed region, not independent room discovery (see
+  [Region proposal](ARCHITECTURE.md#region-proposal---deterministic-no-model) for
+  how the boxes are chosen). Live comparisons widen the
   allowed measurement margins. The offline deterministic run (the same input
   always gives the same output) is 12/12 and is the scored evidence.
 - **No real-world accuracy claim.** The 12/12 result is a synthetic evaluation,
