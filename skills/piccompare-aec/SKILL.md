@@ -1,6 +1,6 @@
 ---
 name: piccompare-aec
-description: Measure room and space changes across two floor plans and verify definitions before claiming changes. Use for architecture, engineering and construction (AEC) revision review with the PicCompare AEC command-line tool.
+description: Measure room and space changes across two floor plans and verify definitions before claiming changes. Use for architecture, engineering and construction (AEC) revision review with the PicCompare AEC MCP server or command-line tool.
 ---
 
 # PicCompare AEC measurement skill
@@ -20,6 +20,10 @@ split in two, or two rooms merged).
 
 - Python 3.11 or newer, with this repository installed
   (`pip install -e ".[dev]"`).
+- Prefer an assistant with this repository's MCP server configured: it starts
+  with `python -m aec.mcp_server` and serves the same operations as tools (see
+  `docs/MCP.md`). The commands below are the fallback when no server is
+  available.
 - A test-example folder containing `a.png`, `b.png`, `config.json`,
   `ground_truth.json` (the known correct answer) and `sam31.json` (recorded
   Segment Anything Model output).
@@ -29,12 +33,23 @@ split in two, or two rooms merged).
 
 ## Workflow
 
-1. Run `python -m aec measure --fixture fixtures/aec/resize-01 --out runs/measure/resize-01`.
+1. Prefer the MCP server when it is available and the command line otherwise.
+   With a server, call `aec.measure` with
+   `{"fixture": "fixtures/aec/resize-01", "out": "runs/measure/resize-01"}`;
+   without one, run
+   `python -m aec measure --fixture fixtures/aec/resize-01 --out runs/measure/resize-01`.
 2. Read `report.md` and `report.json`; check `findings`, `not_compared`
-   (comparisons refused) and `evidence`.
-3. Run `python -m aec verify --report runs/measure/resize-01/report.json --inputs-dir fixtures/aec/resize-01`.
-4. Export a measured overlay when requested:
-   `python -m aec export --report ... --out runs/export`.
+   (comparisons refused) and `evidence`. A tool result carries the same counts
+   and the report path.
+3. Verify with `aec.verify` and
+   `{"report": "runs/measure/resize-01/report.json"}`; the server defaults the
+   inputs folder to the one the report names. On the command line, run
+   `python -m aec verify --report runs/measure/resize-01/report.json --inputs-dir fixtures/aec/resize-01`.
+4. Export a measured overlay when requested: `aec.export` with
+   `{"report": "runs/measure/resize-01/report.json", "format": "both", "out": "runs/export"}`,
+   or `python -m aec export --report ... --out runs/export`.
+5. If neither a server nor the command line is available, say that the check
+   was not run. Never report a measurement you did not measure.
 
 ## Evidence
 

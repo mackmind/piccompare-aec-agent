@@ -39,3 +39,12 @@ def test_skills_do_not_claim_live_or_signed_capability() -> None:
         encoding="utf-8"
     )
     assert "draft" in print_skill.lower()
+
+
+def test_the_aec_skill_prefers_the_mcp_server_and_keeps_the_cli_fallback() -> None:
+    aec = (ROOT / "skills" / "piccompare-aec" / "SKILL.md").read_text(encoding="utf-8")
+    # The server is the default route; the command line is the documented
+    # fallback and must not disappear from the skill.
+    assert "Prefer the MCP server when it is available" in aec
+    assert "docs/MCP.md" in aec
+    assert "python -m aec measure --fixture" in aec
