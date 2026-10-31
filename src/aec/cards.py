@@ -43,7 +43,8 @@ def card_box(
 
     The result is a Pillow crop box ``[left, upper, right, lower]``: the right
     and lower edges are exclusive. Coordinates round outward so the full
-    polygon stays inside the crop.
+    polygon stays inside the crop. A polygon that lies wholly outside the page
+    raises ``CardError`` instead of collapsing to a one-pixel sliver.
     """
     if pad_px < 0:
         raise CardError("pad_px must not be negative")
@@ -70,8 +71,6 @@ def card_box(
         right = min(page.width, left + 1)
     if bottom <= top:
         bottom = min(page.height, top + 1)
-    if right <= left or bottom <= top:
-        raise CardError("card box lies outside the page")
     return [left, top, right, bottom]
 
 
