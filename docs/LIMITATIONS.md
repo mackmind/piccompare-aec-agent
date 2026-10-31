@@ -31,5 +31,9 @@ the submission, not caveats added afterwards.
   projections, coordinate systems or survey control.
 - **No signed evidence.** The report is hashed (fingerprinted) and replayable; it
   is not a digital signature, certification or court-admissibility claim.
+- **Evidence cards show pixels, not correctness.** Evidence cards are raster
+  crops of the plan at the measured element's box; they show what was measured,
+  not that the measurement is correct. They are crops of the supplied plan
+  image, not engine comparisons.
 - **Deterministic critic.** The offline review step is a guard for test
   evaluation, not a substitute for the live Muse Spark reviewer.

@@ -63,13 +63,38 @@ allowed values. ASCII means plain English characters, without accents or symbols
 (`high`/`medium`/`low`), `status` (`verified`/`rejected`/`not_compared`),
 `claim`, `evidence_refs`, `measurement_refs`, `reasons`.
 
+## EvidenceCard
+
+One small PNG crop of the plan around a measured element. Cards are written
+only when `aec measure --cards` is used. The report field defaults to an empty
+list, so a report made without the flag keeps one shape.
+
+| Field | Type | Invariant |
+|---|---|---|
+| `finding_id` | string | the verified finding the crop belongs to |
+| `side` | enum | `a` or `b` |
+| `path` | string | relative to the report directory, forward slashes |
+| `sha256` | string | 64 lowercase hex characters |
+| `bytes` | int | >= 0, the PNG file size |
+| `box_px` | list | exactly 4 integers, clamped to the page |
+| `page` | int | >= 0 |
+| `source` | enum | `plan_raster` |
+
+`path` is always relative to the directory holding the report JSON and uses
+forward slashes on every platform; it never names an absolute path. `box_px`
+is `[left, upper, right, lower]` in raster pixels, with the lower and right
+edges exclusive, as in Pillow's crop box. A card is a crop of the plan at that
+box: it shows what was measured, not that the measurement is correct.
+
 ## Report
 
 `schema_version` (`piccompare-aec-report/1.0`), `demo_notice`
 (`HACKATHON DEMO — NOT AN EVIDENCE RECORD`), `generated_at`, `engine`,
 `inputs`, `settings`, `plan`, `pages`, `elements_a`, `elements_b`, `matches`,
 `measurements`, `findings`, `rejected`, `not_compared`, `evidence`, `usage`,
-`limitations`, `digest`.
+`limitations`, `evidence_cards`, `digest`.
 
-The report writer must reject an altered demo notice. A clean report is
-fingerprinted (hashed) and replayable, never "signed".
+`evidence_cards` is a list of `EvidenceCard` and is empty unless
+`aec measure --cards` was used. The report writer must reject an altered demo
+notice. A clean report is fingerprinted (hashed) and replayable, never
+"signed".

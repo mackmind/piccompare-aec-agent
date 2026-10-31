@@ -41,6 +41,16 @@ def test_limitations_are_explicit() -> None:
         assert phrase in text
 
 
+def test_limitations_doc_states_the_card_limit() -> None:
+    flat = " ".join(
+        (ROOT / "docs" / "LIMITATIONS.md").read_text(encoding="utf-8").split()
+    )
+    assert (
+        "Evidence cards are raster crops of the plan at the measured element's "
+        "box; they show what was measured, not that the measurement is correct."
+    ) in flat
+
+
 def test_sample_report_is_valid_and_verifies() -> None:
     path = ROOT / "demo" / "sample-report.json"
     report = Report.model_validate_json(path.read_text(encoding="utf-8"))
