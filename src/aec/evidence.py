@@ -93,9 +93,27 @@ class VerifyResult:
     reasons: list[str]
 
 
+def read_report(report_path: Path) -> dict[str, Any]:
+    """Parse a report file as a mapping.
+
+    Raises ``OSError`` when the file cannot be read and ``ValueError`` when the
+    text is not JSON or is not a JSON object. This is the one parse every
+    surface shares: a second reader would drift from the contract.
+    """
+    data: Any = json.loads(report_path.read_text(encoding="utf-8"))
+    if not isinstance(data, dict):
+        raise ValueError("report is not a JSON object")
+    return data
+
+
+def load_report(report_path: Path) -> Report:
+    """Parse and validate one report; the loader :func:`verify` and the viewer share."""
+    return Report.model_validate(read_report(report_path))
+
+
 def verify(report_path: Path, inputs_dir: Path | None = None) -> VerifyResult:
     try:
-        data = json.loads(report_path.read_text(encoding="utf-8"))
+        data = read_report(report_path)
         report = Report.model_validate(data)
     except (OSError, ValueError) as error:
         return VerifyResult(False, [f"unreadable report: {error}"])

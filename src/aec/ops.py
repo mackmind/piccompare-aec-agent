@@ -12,10 +12,13 @@ from pathlib import Path
 from typing import Any
 
 from aec.engine import resolve_engine
+from aec.evidence import load_report
 from aec.evidence import verify as verify_report
 from aec.export import export_dxf, export_svg
 from aec.models import Report
 from aec.pipeline import run_pair
+from aec.redact import redact
+from aec.viewer import ViewerError, render_report_html
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 EXPORT_FORMATS = ("svg", "dxf", "both")
@@ -82,6 +85,58 @@ def verify(
     )
     result = verify_report(report_path, directory)
     return {"ok": result.ok, "reasons": list(result.reasons)}
+
+
+def view(
+    report: str | Path,
+    out: str | Path,
+    inputs_dir: str | Path | None = None,
+) -> dict[str, Any]:
+    """Render one report as a self-contained HTML page.
+
+    ``inputs_dir`` switches on the same re-check :func:`verify` performs, so a
+    page is written only for a report whose inputs were read again; without it
+    the page is built from the report alone, which is what an archived report or
+    a CI artifact needs. A report that fails that check returns ``ok`` false and
+    nothing is written.
+
+    Raises :class:`OpsError` when the report cannot be read or validated or a
+    card image is missing. No message carries an absolute path.
+    """
+    report_path = Path(report)
+    try:
+        model = load_report(report_path)
+    except OSError as error:
+        raise OpsError(f"cannot read report: {redact(str(error))}") from error
+    except ValueError as error:
+        detail = " ".join(redact(str(error)).split())[:300]
+        raise OpsError(f"report is not valid: {detail}") from error
+    if inputs_dir is not None:
+        checked = verify(report_path, inputs_dir)
+        if not checked["ok"]:
+            return {
+                "ok": False,
+                "out": None,
+                "pair_id": model.plan.pair_id,
+                "reasons": list(checked["reasons"]),
+            }
+    out_path = Path(out)
+    if out_path.resolve() == report_path.resolve():
+        raise OpsError("refusing to replace the report with its own page")
+    try:
+        page = render_report_html(
+            model, embed_cards=True, cards_dir=report_path.parent
+        )
+    except ViewerError as error:
+        raise OpsError(str(error)) from error
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    out_path.write_text(page, encoding="utf-8", newline="\n")
+    return {
+        "ok": True,
+        "out": str(out_path),
+        "pair_id": model.plan.pair_id,
+        "reasons": [],
+    }
 
 
 def export(

@@ -45,6 +45,20 @@ def _export(args: argparse.Namespace) -> int:
     return 0
 
 
+def _view(args: argparse.Namespace) -> int:
+    try:
+        result = ops.view(args.report, args.out, args.inputs_dir)
+    except ops.OpsError as error:
+        print(f"FAIL {error}")
+        return 2
+    if not result["ok"]:
+        for reason in result["reasons"]:
+            print(f"FAIL {reason}")
+        return 1
+    print(result["out"])
+    return 0
+
+
 def _engine_info(args: argparse.Namespace) -> int:
     try:
         result = ops.engine_info(args.workspace_root, args.engine_tree)
@@ -84,6 +98,12 @@ def main(argv: list[str] | None = None) -> int:
     export.add_argument("--format", choices=["svg", "dxf", "both"], default="both")
     export.add_argument("--out", default="runs/export")
     export.set_defaults(handler=_export)
+
+    view = subparsers.add_parser("view", help="render a report as one HTML page")
+    view.add_argument("--report", required=True)
+    view.add_argument("--inputs-dir")
+    view.add_argument("--out", required=True)
+    view.set_defaults(handler=_view)
 
     engine_info = subparsers.add_parser("engine-info", help="resolve engine tree")
     engine_info.add_argument("--workspace-root")
