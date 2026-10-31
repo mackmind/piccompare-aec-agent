@@ -36,6 +36,7 @@ live = [
 
 [project.scripts]
 aec = "aec.cli:main"
+aec-mcp = "aec.mcp_server:main"
 
 [tool.setuptools]
 package-dir = { "" = "src" }
