@@ -21,8 +21,10 @@ can run).
 
 | Component | File | Role |
 |---|---|---|
+| Data contracts | `src/aec/models.py` | the validated records passed between stages (plan, element, finding, evidence card, report); no engine types |
 | Engine resolver | `src/aec/engine.py` | explicit folder → environment switch (`PICCOMPARE_DEMO=1`) or `tree-map.json` → `active-pair.json`; no hard-coded folder |
 | Engine client | `src/aec/client.py` | one separate program run per documented command; JSON (plain-text data) responses; typed failures |
+| Region proposer | `src/aec/propose.py` | model-free candidate rectangles: threshold the dark strokes, close the gaps, keep the enclosed paper regions; a box only tells SAM where to look |
 | SAM client | `src/aec/sam.py` | Segment Anything Model 3.1 client; its network connection can be replaced in tests |
 | SAM adapter | `src/aec/sam_adapter.py` | model response → `SamObject` (a validated data record) |
 | Mask adapter | `src/aec/masks.py` | binary mask → closed polygon (an outline made of straight edges) |
@@ -33,11 +35,25 @@ can run).
 | Meta client | `src/aec/meta.py` | client for Meta's model service (its interface follows the widely used OpenAI chat format) |
 | Planner/critic | `src/aec/planner.py`, `critic.py` | brief → PlanSpec; review that checks the evidence |
 | Pipeline | `src/aec/pipeline.py` | offline end-to-end run on a prepared example |
+| Live pipeline | `src/aec/live.py` | live run: one SAM box prompt per proposed region per side, the tolerance widening live masks need, and the Muse-backed review call |
 | Report/evidence | `src/aec/report.py`, `evidence.py` | plain-text JSON and Markdown; fingerprints (hashes); replay |
+| Evidence cards | `src/aec/cards.py` | deterministic PNG crop of the plan around a finding's measured box, one per side, with its hash and size recorded; a crop that cannot be made is recorded as skipped |
+| Evaluation | `src/aec/evaluation.py` | scores an offline or live run against the prepared ground truth: verified, refused, missed and false changes; writes `metrics.json` |
 | Batch/export | `src/aec/batch.py`, `export.py` | sorting by how much a change matters; measured SVG (scalable vector graphics) or DXF (drawing exchange format) drawing overlays |
+| Operations | `src/aec/ops.py` | the data-returning operations both front ends call (measure, verify, export, engine info); JSON-safe values and typed errors, no printing |
+| Command line | `src/aec/cli.py`, `__main__.py` | argument parsing, printing and exit codes; `python -m aec` runs this |
+| Package | `src/aec/__init__.py` | the package marker and the single version string (`aec --version`) |
+| Tool registry | `src/aec/tool_registry.py` | the one list of published tools, each with its input schema and handler; `mcp/manifest.json` is generated from it and a test compares the two |
+| MCP server | `src/aec/mcp_server.py` | JSON-RPC 2.0 on standard input and output, one frame per line and nothing else on standard output; sends each `tools/call` to its handler from the registry |
 
 A **fixture** is a prepared test example. `sam31.json` holds recorded model output
 so the offline run is deterministic (the same input always gives the same result).
+
+The assistant path calls the same functions: `aec.mcp_server` reads one JSON-RPC
+2.0 frame per line and sends each `tools/call` to the handler named in
+`aec.tool_registry`, which is the same `aec.ops`, `aec.batch`, `aec.evaluation` or
+`aec.client` function the command line calls, so a result cannot differ between
+the two paths.
 
 ## Region proposal - deterministic, no model
 
