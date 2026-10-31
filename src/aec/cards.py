@@ -96,7 +96,7 @@ def render_card(
         width, height = image.size
         if not (0 <= left < right <= width and 0 <= top < bottom <= height):
             raise CardError("card box is outside the image")
-        crop = image.convert("RGB").crop((left, top, right, bottom))
+        crop = image.crop((left, top, right, bottom)).convert("RGB")
         if max(crop.size) > max_side:
             ratio = max_side / max(crop.size)
             crop = crop.resize(

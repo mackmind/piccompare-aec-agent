@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
-"""Stamp the final gate with the branch head and copy it to runs/ext/gate.json.
+"""Stamp the final gate with the branch head and copy it to runs/gates/ext.json.
 
 Thin wrapper: it runs `scripts/run_gates.py --phase final` unchanged, then reads the
 receipt that script writes and copies the step results into `{head, dirty, ok, steps[]}`.
 It refuses to run on a dirty tree and never reports success on an unreadable receipt.
+
+The default output is a gate path, not an internal evidence path; pass an explicit
+`--out runs/ext/<name>.json` to keep a workstream receipt under `runs/ext/`.
 """
 
 from __future__ import annotations
@@ -18,7 +21,7 @@ ROOT = Path(__file__).resolve().parent.parent
 PY = sys.executable
 GATE_SCRIPT = "scripts/run_gates.py"
 GATE_RECEIPT = ROOT / "runs" / "gates" / "final.json"
-DEFAULT_OUT = "runs/ext/gate.json"
+DEFAULT_OUT = "runs/gates/ext.json"
 
 
 def git_output(*args: str) -> str:
@@ -83,7 +86,7 @@ def read_steps() -> list[dict]:
     return steps
 
 
-def main(argv: list[str] | None = None) -> int:
+def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Run the final gate and write a head-stamped receipt."
     )
@@ -92,7 +95,11 @@ def main(argv: list[str] | None = None) -> int:
         default=DEFAULT_OUT,
         help=f"receipt path relative to the repo root (default: {DEFAULT_OUT})",
     )
-    args = parser.parse_args(argv)
+    return parser
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = build_parser().parse_args(argv)
 
     out = Path(args.out)
     if not out.is_absolute():

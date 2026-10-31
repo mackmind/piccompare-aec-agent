@@ -203,7 +203,7 @@ TOOLS: list[Tool] = [
         transport="cli",
         status="available",
         input_schema={"workspace_root": "string|null", "engine_tree": "string|null"},
-        example="python -m aec engine-info --engine-tree ../PicCompare_0.55C",
+        example="python -m aec engine-info --engine-tree ../PicCompare",
         read_only=True,
         handler=HandlerRef(OPS, "engine_info"),
     ),

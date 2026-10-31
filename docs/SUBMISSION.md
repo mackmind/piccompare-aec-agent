@@ -38,6 +38,9 @@ words used here, start with the [README](../README.md).
 | Offline AEC (architecture, engineering and construction) pipeline works on 12 generated pairs | Yes | `runs/eval/metrics.json`; 12/12 |
 | The engine's command-line compare and regions commands work on a local PicCompare build | Yes | `scripts/engine_smoke.py` run record, tied to the code revision |
 | Measures room resize and wall move on generated plans | Yes, generated plans only | 7 verified findings |
+| Proposes candidate regions from the plan without a model | Yes, generated plans only | `tests/test_propose.py` sweeps all 12 pairs and both sides: 96 of 96 ground-truth rooms get a proposed box at an IoU of 0.923 to 0.959 against the 0.5 test floor; a proposal is not room discovery |
+| Writes PNG evidence cards into a report | Yes, up to 12 crops (one per side of at most six verified findings) | `aec measure --cards`; cards are hashed in `demo/sample-report.json`; a crop shows what was measured, not that the measurement is correct |
+| Publishes the same operations to an AI assistant over MCP | Yes | `src/aec/mcp_server.py` and `mcp/manifest.json` (12 tools, JSON-RPC 2.0 on local standard input and output, no network port); `tests/test_mcp_server.py` drives a real subprocess |
 | Refuses split/merge definitions | Yes | 4 definition mismatches; `not_compared` |
 | Report is fingerprinted (hashed) and replayable | Yes | `python -m aec verify` on the offline and live reports (`runs/live/resize-01/report.json` verifies) |
 | Uses the live SAM 3.1 and Muse Spark models | Yes | `demo/live-report.json` (`live_meta`, both model ids, 10 SAM + 1 Muse call); `scripts/smoke_meta.py` and `scripts/smoke_sam.py --live --box` |
@@ -55,6 +58,7 @@ words used here, start with the [README](../README.md).
 | Repository | https://github.com/mackmind/piccompare-aec-agent |
 | Demo video | not yet recorded |
 | Architecture | `docs/ARCHITECTURE.md` |
+| MCP server | `docs/MCP.md` |
 | Dataset | `docs/DATASET.md` |
 | Limitations | `docs/LIMITATIONS.md` |
 | Sample report | `demo/sample-report.json` and `demo/sample-report.md` |

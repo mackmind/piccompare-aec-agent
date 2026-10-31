@@ -138,6 +138,8 @@ class EvidenceCard(StrictModel):
             or (len(value) > 1 and value[1] == ":")
         ):
             raise ValueError("path must be relative with forward slashes")
+        if ".." in value.split("/"):
+            raise ValueError("path must not contain '..' components")
         return value
 
 

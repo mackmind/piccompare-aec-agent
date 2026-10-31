@@ -120,6 +120,23 @@ def _flat_doc(name: str) -> str:
     return " ".join((ROOT / "docs" / name).read_text(encoding="utf-8").split()).lower()
 
 
+def test_every_aec_module_is_listed_in_the_architecture_components() -> None:
+    # The W4 sweep that checked this used to be a gitignored script; the test
+    # makes a new module without a components row fail the suite instead.
+    text = (ROOT / "docs" / "ARCHITECTURE.md").read_text(encoding="utf-8")
+    start = text.index("## Components")
+    end = text.index("\n## ", start + 1)
+    table = text[start:end]
+    modules = sorted(
+        path.name
+        for path in (ROOT / "src" / "aec").glob("*.py")
+        if path.name != "__init__.py"
+    )
+    assert modules
+    missing = [name for name in modules if name not in table]
+    assert not missing, missing
+
+
 def test_public_docs_credit_the_proposer_and_never_the_model_with_rooms() -> None:
     architecture = _flat_doc("ARCHITECTURE.md")
     limitations = _flat_doc("LIMITATIONS.md")

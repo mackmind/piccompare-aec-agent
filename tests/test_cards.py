@@ -90,9 +90,21 @@ def test_evidence_card_rejects_a_non_hex_sha256() -> None:
 
 
 def test_evidence_card_rejects_absolute_and_backslash_paths() -> None:
-    for bad in ["/cards/x.png", "cards\\x.png", "C:/cards/x.png"]:
+    for bad in [
+        "/cards/x.png",
+        "cards\\x.png",
+        "C:/cards/x.png",
+        # A report must not name a file outside its own directory.
+        "cards/../../x.png",
+        "../x.png",
+        "cards/..",
+    ]:
         with pytest.raises(ValidationError):
             card(path=bad)
+
+
+def test_evidence_card_accepts_dots_inside_a_name() -> None:
+    assert card(path="cards/a..b.png").path == "cards/a..b.png"
 
 
 def test_evidence_card_requires_four_box_values() -> None:

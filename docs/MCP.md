@@ -127,11 +127,15 @@ measured yourself, and the answer is recomputed from that report's fingerprints.
   account's file access, so configure it only in a client you trust.
 - **Read-only tools:** `aec.verify`, `aec.engine_info`, `piccompare.get_regions`
   and `piccompare.align` only read and compute. The other eight write.
-- **Writes name their directory.** Every writing tool takes an explicit `out`
-  and creates its files under it. Nothing is written to the repository unless
-  the caller names a folder inside it. The six `piccompare.*` tools call the
-  external engine, which keeps its own comparison state under
-  `runs/mcp/profile`; set `PICCOMPARE_MCP_PROFILE` to move it.
+- **Writes name their directory, or use the profile.** The local tools that
+  write files (`aec.measure`, `aec.export`, `aec.batch`, `aec.eval`) take an
+  explicit `out` and create their files under it; nothing is written to the
+  repository unless the caller names a folder inside it. The six
+  `piccompare.*` tools take no `out`: `piccompare.compare_documents` records
+  its comparison state in the external engine's profile directory, and
+  `piccompare.get_crop`, `piccompare.get_page_image` and
+  `piccompare.export_report` write their image and report files there too. The
+  profile is `runs/mcp/profile`; set `PICCOMPARE_MCP_PROFILE` to move it.
 - **The external engine is optional.** `aec.measure`, `aec.verify`, `aec.export`,
   `aec.engine_info`, `aec.batch` and `aec.eval` work on their own. The six
   engine tools refuse with a typed error when no local PicCompare build
