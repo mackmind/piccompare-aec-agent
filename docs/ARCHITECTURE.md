@@ -46,6 +46,7 @@ can run).
 | Package | `src/aec/__init__.py` | the package marker and the single version string (`aec --version`) |
 | Tool registry | `src/aec/tool_registry.py` | the one list of published tools, each with its input schema and handler; `mcp/manifest.json` is generated from it and a test compares the two |
 | MCP server | `src/aec/mcp_server.py` | JSON-RPC 2.0 on standard input and output, one frame per line and nothing else on standard output; sends each `tools/call` to its handler from the registry |
+| Local web app | `src/aec/webapp.py` | a loopback-only HTTP server for a browser page: pick a fixture pair, measure it, read the report with its evidence cards, re-verify and export it; one session token for every state change, no JavaScript, no remote asset, and every requested file resolved inside its own run directory |
 | Error redaction | `src/aec/redact.py` | one function that makes an error message safe to show on any surface: absolute paths become `<path>`, given secrets become `<redacted>`; the MCP server and the command line share it |
 
 A **fixture** is a prepared test example. `sam31.json` is a SAM-shaped record
