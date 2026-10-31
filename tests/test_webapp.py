@@ -16,7 +16,7 @@ from pathlib import Path
 import pytest
 from webapp_harness import CSP, FIXTURES, client, measure, request, running_app
 
-from aec import tool_registry
+from aec import ops, tool_registry
 from aec.webapp import WebAppError, build_app
 
 
@@ -173,3 +173,75 @@ def test_every_route_answers(tmp_path: Path) -> None:
         assert status == 200
         assert headers["Content-Type"] == "image/svg+xml"
         assert b"<svg" in body
+
+
+def test_the_whole_flow_from_the_picker_to_the_svg(tmp_path: Path) -> None:
+    """The acceptance pass: picker, measure, page, card, verify, export, tools."""
+    workspace = tmp_path / "workspace"
+    with running_app(tmp_path) as server, client(server) as connection:
+        # 1. The picker, reached with the token in the query string.
+        status, _, body = request(connection, "GET", f"/?token={server.token}")
+        picker = body.decode("utf-8")
+        assert status == 200
+        assert "resize-01" in picker
+
+        # 2. Measure with evidence cards; the answer is a redirect, followed here.
+        run_id, location = measure(connection, server.token, cards=True)
+
+        # 3. The run page carries the finding, two card images and the digest.
+        status, _, body = request(connection, "GET", location)
+        page = body.decode("utf-8")
+        assert status == 200
+        assert "room_resized" in page
+        assert page.count("<img ") == 2
+        assert f'src="/run/{run_id}/card/' in page
+        report = json.loads(
+            (workspace / run_id / "report.json").read_text(encoding="utf-8")
+        )
+        assert report["plan"]["pair_id"] == "resize-01"
+        assert f"<code>{report['digest']}</code>" in page
+        assert "C:" not in page
+
+        # 4. One card image, hashed against the sha256 the page shows.
+        card = report["evidence_cards"][0]
+        name = card["path"].rpartition("/")[2]
+        assert card["sha256"] in page
+        status, headers, image = request(
+            connection, "GET", f"/run/{run_id}/card/{name}"
+        )
+        assert status == 200
+        assert headers["Content-Type"] == "image/png"
+        assert hashlib.sha256(image).hexdigest() == card["sha256"]
+
+        # 5. Verify says ok; export writes the SVG the page links.
+        status, _, body = request(
+            connection, "POST", f"/run/{run_id}/verify", {"token": server.token}
+        )
+        assert status == 200
+        assert "Report verifies" in body.decode("utf-8")
+        status, _, body = request(
+            connection, "POST", f"/run/{run_id}/export", {"token": server.token}
+        )
+        assert status == 200
+        assert (workspace / run_id / "export" / "resize-01.svg").is_file()
+        assert f"/run/{run_id}/export/resize-01.svg" in body.decode("utf-8")
+
+        # 6. The registry page and the health probe.
+        status, _, body = request(connection, "GET", "/tools")
+        tools = body.decode("utf-8")
+        assert status == 200
+        for tool in tool_registry.TOOLS:
+            assert tools.count(tool.name) == 1, tool.name
+        status, _, body = request(connection, "GET", "/healthz")
+        assert status == 200
+        assert json.loads(body) == {"ok": True}
+
+        port = int(server.server_address[1])
+
+    # The same fixture through the operation gives the same verified count, so
+    # the page cannot disagree with the command line about what was found.
+    assert len(report["findings"]) == ops.measure(FIXTURES / "resize-01")["verified"]
+
+    # The context manager shut the server down; nothing is listening now.
+    with socket.socket() as probe:
+        probe.bind(("127.0.0.1", port))
