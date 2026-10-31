@@ -96,3 +96,26 @@ def test_committed_live_report_verifies_and_names_the_live_provider() -> None:
     assert report.usage["sam_calls"] > 0
     assert report.usage["sam_model"] and report.usage["meta_model"]
     assert verify(path, inputs_dir=ROOT / "fixtures" / "aec" / "resize-01").ok
+
+
+def _flat_doc(name: str) -> str:
+    return " ".join((ROOT / "docs" / name).read_text(encoding="utf-8").split()).lower()
+
+
+def test_public_docs_credit_the_proposer_and_never_the_model_with_rooms() -> None:
+    architecture = _flat_doc("ARCHITECTURE.md")
+    limitations = _flat_doc("LIMITATIONS.md")
+    # Both pages must credit the proposer, not SAM, with the region boxes.
+    assert "region proposal" in architecture
+    assert "proposed region" in limitations
+    # Only affirmative phrasings are forbidden. The compliant negation
+    # "not independent room discovery" is deliberate, so the bare substring
+    # "room discovery" must never be banned by this guard.
+    assert "room discovery" in limitations
+    for text in (architecture, limitations):
+        for phrase in (
+            "sam finds rooms",
+            "sam discovers rooms",
+            "the model identifies the rooms",
+        ):
+            assert phrase not in text, phrase
