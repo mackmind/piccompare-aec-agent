@@ -1,8 +1,9 @@
-"""Workspace containment: run ids, traversal, file names, fixtures and body size.
+"""Refusals: containment, tokens, unknown routes, headers and body size.
 
 Every case here asserts a status and, where a file exists that a traversal
-would reach, that none of its bytes came back. The workspace snapshot before a
-refused request must equal the snapshot after it.
+would reach, that none of its bytes came back. A workspace snapshot taken
+before a refused request must equal the snapshot after it, so a refusal can
+never be a silent state change.
 """
 
 from __future__ import annotations
@@ -15,6 +16,7 @@ from urllib.parse import quote, urlencode
 
 import pytest
 from webapp_harness import (
+    CSP,
     FIXTURES,
     client,
     measure,
@@ -23,11 +25,26 @@ from webapp_harness import (
     running_app,
 )
 
+from aec.webapp import WebAppError, build_app
+
 
 def _json_error(body: bytes) -> str:
     payload = json.loads(body)
     assert set(payload) == {"error"}
     return str(payload["error"])
+
+
+def _snapshot(workspace: Path) -> list[tuple[str, int, int]]:
+    """Every file under the workspace with its size and modification time."""
+    return sorted(
+        (
+            path.relative_to(workspace).as_posix(),
+            path.stat().st_size,
+            path.stat().st_mtime_ns,
+        )
+        for path in workspace.rglob("*")
+        if path.is_file()
+    )
 
 
 def test_a_run_id_must_be_thirty_two_lowercase_hex_digits(tmp_path: Path) -> None:
@@ -172,3 +189,154 @@ def test_a_fixture_pair_symlinked_outside_the_fixtures_is_refused(
         )
     assert status == 400
     assert _json_error(body) == "unknown fixture pair"
+
+
+def test_every_post_refuses_a_missing_or_wrong_token(tmp_path: Path) -> None:
+    with running_app(tmp_path) as server, client(server) as connection:
+        run_id, _ = measure(connection, server.token)
+        before = _snapshot(server.workspace)
+        attempts: list[tuple[str, dict[str, str]]] = [
+            ("/measure", {}),
+            ("/measure", {"pair": "resize-01"}),
+            ("/measure", {"pair": "resize-01", "token": "wrong"}),
+            (f"/run/{run_id}/verify", {}),
+            (f"/run/{run_id}/verify", {"token": server.token + "x"}),
+            (f"/run/{run_id}/export", {}),
+            (f"/run/{run_id}/export", {"token": "x" * 43}),
+        ]
+        for path, fields in attempts:
+            status, headers, body = request(connection, "POST", path, fields)
+            assert status == 403, (path, fields)
+            assert headers["Content-Type"] == "application/json"
+            assert _json_error(body) == "a valid session token is required"
+            assert server.token not in body.decode("utf-8")
+        after = _snapshot(server.workspace)
+    assert after == before
+
+
+def test_a_post_with_no_body_is_refused_like_a_missing_token(
+    tmp_path: Path,
+) -> None:
+    with running_app(tmp_path) as server, client(server) as connection:
+        status, _, body = post_raw(connection, "/measure", "")
+    assert status == 403
+    assert _json_error(body) == "a valid session token is required"
+
+
+def test_a_post_without_a_form_content_type_is_refused_with_403(
+    tmp_path: Path,
+) -> None:
+    # http.client sends a length but no content type: still no token, so the
+    # answer is the token refusal rather than a body-format error.
+    with running_app(tmp_path) as server, client(server) as connection:
+        connection.request("POST", "/measure", body="pair=resize-01")
+        response = connection.getresponse()
+        status, body = response.status, response.read()
+    assert status == 403
+    assert _json_error(body) == "a valid session token is required"
+
+
+def test_a_token_from_another_session_is_refused(tmp_path: Path) -> None:
+    with running_app(tmp_path / "first") as first, running_app(
+        tmp_path / "second"
+    ) as second, client(first) as connection:
+        assert first.token != second.token
+        status, _, body = request(
+            connection,
+            "POST",
+            "/measure",
+            {"pair": "resize-01", "token": second.token},
+        )
+    assert status == 403
+    assert _json_error(body) == "a valid session token is required"
+
+
+def test_an_unknown_route_is_404(tmp_path: Path) -> None:
+    with running_app(tmp_path) as server, client(server) as connection:
+        for path in ("/nope", "/run", "/run/", "/card/x", "/tools/1", "/healthz/x"):
+            status, headers, body = request(connection, "GET", path)
+            assert status == 404, path
+            assert headers["Content-Type"] == "application/json"
+            assert _json_error(body) == "not found"
+
+
+def test_a_normal_response_carries_the_security_headers(tmp_path: Path) -> None:
+    with running_app(tmp_path) as server, client(server) as connection:
+        status, headers, _ = request(connection, "GET", "/")
+    assert status == 200
+    assert headers["Content-Security-Policy"] == CSP
+    assert headers["X-Content-Type-Options"] == "nosniff"
+    assert headers["Referrer-Policy"] == "no-referrer"
+    assert headers["Cache-Control"] == "no-store"
+    assert headers["X-Frame-Options"] == "DENY"
+
+
+def test_an_unsupported_method_is_501_with_the_same_headers(tmp_path: Path) -> None:
+    with running_app(tmp_path) as server, client(server) as connection:
+        connection.request("DELETE", "/")
+        response = connection.getresponse()
+        status, headers, body = response.status, response.headers, response.read()
+    assert status == 501
+    assert headers["Content-Security-Policy"] == CSP
+    assert headers["X-Content-Type-Options"] == "nosniff"
+    assert _json_error(body) == "not implemented"
+
+
+def test_a_run_directory_without_a_report_is_404(tmp_path: Path) -> None:
+    with running_app(tmp_path) as server, client(server) as connection:
+        empty = server.workspace / ("0" * 32)
+        empty.mkdir()
+        status, _, body = request(connection, "GET", f"/run/{empty.name}")
+    assert status == 404
+    assert _json_error(body) == "no such run"
+
+
+def test_a_tampered_report_does_not_verify_in_the_page(tmp_path: Path) -> None:
+    with running_app(tmp_path) as server, client(server) as connection:
+        run_id, _ = measure(connection, server.token)
+        path = server.workspace / run_id / "report.json"
+        data = json.loads(path.read_text(encoding="utf-8"))
+        data["findings"][0]["claim"] = "a claim that was never measured"
+        path.write_text(json.dumps(data, ensure_ascii=True), encoding="ascii")
+        status, headers, body = request(
+            connection, "POST", f"/run/{run_id}/verify", {"token": server.token}
+        )
+    text = body.decode("utf-8")
+    assert status == 200
+    assert headers["Content-Type"] == "text/html; charset=utf-8"
+    assert "Report does not verify" in text
+    assert "report digest mismatch" in text
+    assert "a claim that was never measured" not in text
+
+
+def test_measure_without_cards_renders_no_card_images(tmp_path: Path) -> None:
+    with running_app(tmp_path) as server, client(server) as connection:
+        run_id, location = measure(connection, server.token, cards=False)
+        status, _, body = request(connection, "GET", location)
+        page = body.decode("utf-8")
+        assert status == 200
+        assert "<img " not in page
+        assert "Evidence cards" not in page
+        status, _, body = request(
+            connection, "GET", f"/run/{run_id}/card/anything.png"
+        )
+    assert status == 404
+    assert _json_error(body) == "no such file"
+
+
+def test_an_empty_fixtures_directory_renders_the_empty_state(tmp_path: Path) -> None:
+    fixtures = tmp_path / "fixtures"
+    fixtures.mkdir()
+    with running_app(tmp_path, fixtures=fixtures) as server, client(
+        server
+    ) as connection:
+        status, _, body = request(connection, "GET", "/")
+    text = body.decode("utf-8")
+    assert status == 200
+    assert "No fixture pair was found" in text
+    assert "<table>" not in text
+
+
+def test_a_port_outside_the_range_is_refused(tmp_path: Path) -> None:
+    with pytest.raises(WebAppError):
+        build_app(workspace=tmp_path / "workspace", fixtures=FIXTURES, port=70000)

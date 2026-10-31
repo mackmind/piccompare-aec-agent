@@ -148,7 +148,10 @@ class WebServer(ThreadingHTTPServer):
     """The threaded server, carrying the session state the handler reads."""
 
     daemon_threads = True
-    allow_reuse_address = True
+    # On Windows SO_REUSEADDR lets a second local socket bind a port that is
+    # already listening, and which one receives a connection is undefined. The
+    # page defaults to an ephemeral port, so nothing is gained by sharing one.
+    allow_reuse_address = False
 
     def __init__(self, address: tuple[str, int], state: _State) -> None:
         self.state = state
@@ -177,10 +180,20 @@ class _Handler(BaseHTTPRequestHandler):
     server_version = "aec-webapp"
     sys_version = ""
     protocol_version = "HTTP/1.1"
+    # A local client that stalls mid-request must not hold a handler thread.
+    timeout = 5
+    # Whether this request's body has been read or dropped. Reset per request.
+    body_consumed: bool = False
 
     @property
     def state(self) -> _State:
         return cast(WebServer, self.server).state
+
+    def handle_one_request(self) -> None:
+        # One handler instance serves every request on a kept-alive connection,
+        # so the "is this request's body consumed" flag starts each one fresh.
+        self.body_consumed = False
+        super().handle_one_request()
 
     def do_GET(self) -> None:
         self._guard("GET")
@@ -192,8 +205,8 @@ class _Handler(BaseHTTPRequestHandler):
         self, code: int, message: str | None = None, explain: str | None = None
     ) -> None:
         """Answer a base-class refusal with the same headers and a JSON body."""
-        self.close_connection = True
-        self._json(code, {"error": _status_text(code)})
+        self._drain_unread()
+        self._json(code, {"error": _status_text(code)}, close=True)
 
     def log_request(self, code: int | str = "-", size: int | str = "-") -> None:
         """One line per request, with the query string dropped.
@@ -215,14 +228,20 @@ class _Handler(BaseHTTPRequestHandler):
         try:
             self._dispatch(method)
         except _HttpError as error:
+            self._drain_unread()
             extra = () if error.allow is None else (("Allow", error.allow),)
             self._json(error.status, {"error": error.message}, extra=extra, close=True)
         except OpsError as error:
+            self._drain_unread()
             sys.stderr.write(self._clean(str(error)) + "\n")
             self._json(400, {"error": self._clean(str(error))}, close=True)
         except (BrokenPipeError, ConnectionResetError):
             self.close_connection = True
+        except TimeoutError:
+            # The client stalled; the connection, not the app, is the problem.
+            self.close_connection = True
         except Exception as error:
+            self._drain_unread()
             sys.stderr.write(traceback.format_exc())
             sys.stderr.flush()
             message = self._clean(str(error)) or "internal error"
@@ -290,27 +309,38 @@ class _Handler(BaseHTTPRequestHandler):
         raise _HttpError(404, "not found")
 
     def _form(self) -> dict[str, str]:
-        """Read the one content type and size this app accepts, or refuse."""
+        """The submitted fields, or an empty mapping when there is no form.
+
+        A body is only read when its declared size and type are the ones this
+        app accepts; anything else yields no fields, and a request without
+        fields has no token, which the caller refuses with 403. The one answer
+        given before the token check is a body above the cap, because that is a
+        resource limit rather than an identity one.
+        """
+        # Every path here either reads the body, drops it, or establishes that
+        # there is none, so the body is accounted for from this point on.
+        self.body_consumed = True
         raw_length = self.headers.get("Content-Length")
         if raw_length is None:
-            raise _HttpError(400, "a form body is required")
+            return {}
         try:
             length = int(raw_length)
         except ValueError:
-            raise _HttpError(400, "a form body is required") from None
+            return {}
         if length < 0:
-            raise _HttpError(400, "a form body is required")
+            return {}
         if length > MAX_BODY_BYTES:
             self._drain(length)
             raise _HttpError(413, "request body too large")
         kind = self.headers.get("Content-Type", "").split(";", 1)[0].strip().lower()
         if kind != FORM_TYPE:
-            raise _HttpError(400, "a form body is required")
+            self._drain(length)
+            return {}
         raw = self.rfile.read(length)
         try:
             text = raw.decode("utf-8")
         except UnicodeDecodeError:
-            raise _HttpError(400, "a form body must be UTF-8") from None
+            return {}
         parsed = parse_qs(text, keep_blank_values=True)
         return {name: values[-1] for name, values in parsed.items() if values}
 
@@ -327,6 +357,27 @@ class _Handler(BaseHTTPRequestHandler):
             if not chunk:
                 return
             remaining -= len(chunk)
+
+    def _drain_unread(self) -> None:
+        """Drop a request body nobody read, before an error answer closes.
+
+        A server that closes with unread bytes in its receive buffer makes the
+        operating system send a reset, and that reset can destroy the answer the
+        client has not read yet: a refused POST whose body was never consumed
+        would otherwise reach the caller as a dropped connection.
+        """
+        if self.body_consumed or self.command != "POST":
+            return
+        self.body_consumed = True
+        raw = self.headers.get("Content-Length")
+        if raw is None:
+            return
+        try:
+            length = int(raw)
+        except ValueError:
+            return
+        if length > 0:
+            self._drain(length)
 
     def _require_token(self, provided: str) -> None:
         token = self.state.token
@@ -728,16 +779,17 @@ def _with_run_bar(page: str, *, run_id: str, pair_id: str, token: str) -> str:
     """Add the app bar and its CSS to the viewer's own document.
 
     The viewer is a complete document and is not edited here, so its two stable
-    anchors - ``</head>`` and ``<main>`` - are where the bar goes. A viewer that
-    loses either anchor raises instead of silently dropping the buttons.
+    anchors - ``</head>`` and ``<body>`` - are where the style and the bar go;
+    the bar sits above ``<main>`` so it spans the page. A viewer that loses
+    either anchor raises instead of silently dropping the buttons.
     """
-    if "</head>" not in page or "<main>" not in page:
+    if "</head>" not in page or "<body>" not in page:
         raise RuntimeError(
-            "the viewer page has no head or main to attach the run bar to"
+            "the viewer page has no head or body to attach the run bar to"
         )
     styled = page.replace("</head>", f"<style>{APP_CSS}</style>\n</head>", 1)
     bar = _run_bar(run_id=run_id, pair_id=pair_id, token=token)
-    return styled.replace("<main>", "<main>\n" + bar, 1)
+    return styled.replace("<body>", "<body>\n" + bar, 1)
 
 
 def build_app(
