@@ -8,6 +8,7 @@ from pathlib import Path
 import pytest
 from factories import report, spec
 
+from aec import cards as cards_module
 from aec.cli import main
 from aec.evidence import verify
 from aec.models import EvidenceCard, Finding
@@ -217,6 +218,20 @@ def test_a_no_cards_run_does_not_add_the_limitation(tmp_path) -> None:
     result = run_pair(FIXTURE, tmp_path)
     assert CARD_LIMITATION not in result.report.limitations
     assert CARD_LIMITATION not in (tmp_path / "report.md").read_text(encoding="utf-8")
+
+
+def test_an_all_skipped_card_run_does_not_add_the_limitation(tmp_path, monkeypatch) -> None:
+    # Every card is skipped (the oversize guard refuses each crop), so the report
+    # carries evidence_cards: [] and must not claim a card limitation.
+    monkeypatch.setattr(cards_module, "MAX_CARD_BYTES", 1)
+    result = run_pair(FIXTURE, tmp_path, cards=True)
+    assert result.report.evidence_cards == []
+    data = json.loads((tmp_path / "report.json").read_text(encoding="ascii"))
+    assert len(data["evidence"]["cards_skipped"]) == 2
+    assert data["evidence_cards"] == []
+    assert CARD_LIMITATION not in result.report.limitations
+    assert CARD_LIMITATION not in data["limitations"]
+    assert "## Evidence cards" not in (tmp_path / "report.md").read_text(encoding="utf-8")
 
 
 def test_two_card_runs_produce_identical_card_hashes(tmp_path) -> None:

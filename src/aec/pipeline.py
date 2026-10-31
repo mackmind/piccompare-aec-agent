@@ -141,7 +141,9 @@ def run_pair(
             elements_by_id,
             evidence=evidence,
         )
-        limitations.append(CARD_LIMITATION)
+        # A report whose cards were all skipped must not describe cards it lacks.
+        if evidence_cards:
+            limitations.append(CARD_LIMITATION)
     report = build_report(
         engine={"name": "fixture", "mode": "offline_deterministic"},
         inputs={"a": "a.png", "b": "b.png"},
