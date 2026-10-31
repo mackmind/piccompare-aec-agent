@@ -324,6 +324,24 @@ def test_measure_without_cards_renders_no_card_images(tmp_path: Path) -> None:
     assert _json_error(body) == "no such file"
 
 
+def test_a_card_whose_bytes_no_longer_match_the_report_is_not_served(
+    tmp_path: Path,
+) -> None:
+    with running_app(tmp_path) as server, client(server) as connection:
+        run_id, _ = measure(connection, server.token)
+        path = server.workspace / run_id / "report.json"
+        data = json.loads(path.read_text(encoding="utf-8"))
+        card = data["evidence_cards"][0]
+        name = card["path"].rpartition("/")[2]
+        image = server.workspace / run_id / "cards" / name
+        image.write_bytes(image.read_bytes() + b"tampered")
+        status, _, body = request(
+            connection, "GET", f"/run/{run_id}/card/{name}"
+        )
+    assert status == 404
+    assert _json_error(body) == "no such file"
+
+
 def test_an_empty_fixtures_directory_renders_the_empty_state(tmp_path: Path) -> None:
     fixtures = tmp_path / "fixtures"
     fixtures.mkdir()

@@ -17,6 +17,8 @@ The security shape, in one list:
 * a run id is 32 lowercase hex digits, a file name matches ``[A-Za-z0-9._-]+``,
   and every requested file must sit directly inside the directory it belongs
   to, which also catches a symlink pointing outside it;
+* a card is served only while its bytes hash to the digest the report recorded,
+  so a file edited after the run is refused;
 * every error leaves through one redacted JSON answer and the detail goes to
   standard error;
 * every response carries the same four security headers, including the 404 and
@@ -26,6 +28,7 @@ The security shape, in one list:
 
 from __future__ import annotations
 
+import hashlib
 import html
 import json
 import re
@@ -445,9 +448,29 @@ class _Handler(BaseHTTPRequestHandler):
         return candidate
 
     def _card(self, run_id: str, name: str) -> None:
+        """One card image, served only while its bytes match the report.
+
+        The report records the sha256 of every card it wrote, so a file edited
+        after the run is refused rather than shown beside a claim it no longer
+        illustrates. A name the report does not record is refused the same way.
+        """
         run_dir = self._run_directory(run_id)
         path = _child_file(run_dir / "cards", name)
-        self._bytes(path.read_bytes(), "image/png")
+        report = load_report(_report_file(run_dir))
+        expected = next(
+            (
+                card.sha256
+                for card in report.evidence_cards
+                if card.path.rpartition("/")[2] == name
+            ),
+            None,
+        )
+        if expected is None:
+            raise _HttpError(404, "no such file")
+        data = path.read_bytes()
+        if hashlib.sha256(data).hexdigest() != expected:
+            raise _HttpError(404, "no such file")
+        self._bytes(data, "image/png")
 
     def _export_file(self, run_id: str, name: str) -> None:
         run_dir = self._run_directory(run_id)
