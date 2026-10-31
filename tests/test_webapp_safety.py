@@ -11,6 +11,7 @@ from __future__ import annotations
 import json
 import os
 import shutil
+import socket
 from pathlib import Path
 from urllib.parse import quote, urlencode
 
@@ -25,7 +26,7 @@ from webapp_harness import (
     running_app,
 )
 
-from aec.webapp import WebAppError, build_app
+from aec.webapp import WebAppError, WebServer, build_app
 
 
 def _json_error(body: bytes) -> str:
@@ -45,6 +46,20 @@ def _snapshot(workspace: Path) -> list[tuple[str, int, int]]:
         for path in workspace.rglob("*")
         if path.is_file()
     )
+
+
+def _raw_answer(server: WebServer, payload: bytes) -> bytes:
+    """Send bytes no HTTP client library would build, then read until close."""
+    port = int(server.server_address[1])
+    with socket.create_connection(("127.0.0.1", port), timeout=5) as sock:
+        sock.sendall(payload)
+        sock.settimeout(5)
+        chunks: list[bytes] = []
+        while True:
+            block = sock.recv(4096)
+            if not block:
+                return b"".join(chunks)
+            chunks.append(block)
 
 
 def test_a_run_id_must_be_thirty_two_lowercase_hex_digits(tmp_path: Path) -> None:
@@ -365,6 +380,31 @@ def test_an_unsupported_method_is_501_with_the_same_headers(tmp_path: Path) -> N
     assert headers["Content-Security-Policy"] == CSP
     assert headers["X-Content-Type-Options"] == "nosniff"
     assert _json_error(body) == "not implemented"
+
+
+@pytest.mark.parametrize("payload", [b"GET\r\n\r\n", b"POST\r\n\r\n"])
+def test_a_request_line_without_a_path_still_gets_a_json_answer(
+    tmp_path: Path, payload: bytes
+) -> None:
+    """The base class refuses this before a path exists.
+
+    The refusal used to reach ``log_request``, which read ``self.path`` and
+    raised: the client got an empty answer and a traceback carrying absolute
+    paths went to standard error. Any 4xx/5xx is acceptable; what matters is
+    that the answer is a well-formed HTTP response and the server survives it.
+    """
+    with running_app(tmp_path) as server:
+        answer = _raw_answer(server, payload)
+        assert answer.startswith(b"HTTP/1."), answer
+        head, _, body = answer.partition(b"\r\n\r\n")
+        status = int(head.split(b" ", 2)[1])
+        assert 400 <= status < 600, head
+        assert _json_error(body) == "bad request"
+        with client(server) as connection:
+            health, headers, health_body = request(connection, "GET", "/healthz")
+    assert health == 200
+    assert headers["Content-Type"] == "application/json"
+    assert json.loads(health_body) == {"ok": True}
 
 
 def test_a_run_directory_without_a_report_is_404(tmp_path: Path) -> None:

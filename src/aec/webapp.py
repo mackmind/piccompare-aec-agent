@@ -210,6 +210,13 @@ class _Handler(BaseHTTPRequestHandler):
         self, code: int, message: str | None = None, explain: str | None = None
     ) -> None:
         """Answer a base-class refusal with the same headers and a JSON body."""
+        # A request line the parser could not read leaves the version at the
+        # handler's HTTP/0.9 default, and a response written under that version
+        # carries no status line at all: the client would see a bare body. The
+        # refusal is announced as HTTP/1.0 instead; it already closes the
+        # connection, so no framing beyond that is needed.
+        if getattr(self, "request_version", "HTTP/0.9") == "HTTP/0.9":
+            self.request_version = "HTTP/1.0"
         self._drain_unread()
         self._json(code, {"error": _status_text(code)}, close=True)
 
@@ -217,10 +224,13 @@ class _Handler(BaseHTTPRequestHandler):
         """One line per request, with the query string dropped.
 
         The token travels in the query string of the redirect, so logging
-        ``self.path`` unchanged would write the session secret to stderr.
+        ``self.path`` unchanged would write the session secret to stderr. A
+        request line the parser could not read has no path yet, and its refusal
+        still has to be logged rather than crash the handler.
         """
-        path = self.path.split("?", 1)[0]
-        sys.stderr.write(f"{self.address_string()} {self.command} {path} {code}\n")
+        command = getattr(self, "command", None) or "-"
+        path = getattr(self, "path", "-").split("?", 1)[0]
+        sys.stderr.write(f"{self.address_string()} {command} {path} {code}\n")
 
     def log_error(self, format: str, *args: Any) -> None:
         sys.stderr.write(self._clean(format % args) + "\n")
@@ -390,7 +400,9 @@ class _Handler(BaseHTTPRequestHandler):
         if self.body_consumed or self.command != "POST":
             return
         self.body_consumed = True
-        raw = self.headers.get("Content-Length")
+        # A refusal raised before the headers were parsed has no mapping yet.
+        headers = getattr(self, "headers", None) or {}
+        raw = headers.get("Content-Length")
         if raw is None:
             return
         try:
