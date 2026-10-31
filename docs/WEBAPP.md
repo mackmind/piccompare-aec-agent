@@ -84,8 +84,8 @@ Stated plainly, this is what the page does and does not protect.
   read the token from the start page or drive an action with it.
 - **One session token per server process.** It is created at random when the
   server starts and printed inside the URL. Every action that measures, verifies
-  or exports must present it; a request without it, or with another run's token,
-  is refused. Reading a page does not need the token.
+  or exports must present it; a request without it, or with any other value, is
+  refused. Reading a page does not need the token.
 - **No authentication.** There are no accounts, no passwords and no user roles.
   Anyone who can reach the port can read the pages the server is running for. The
   token is printed in your terminal, so treat that line as private while the
