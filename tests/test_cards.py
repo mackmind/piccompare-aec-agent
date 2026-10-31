@@ -3,12 +3,20 @@
 from __future__ import annotations
 
 import json
+from io import BytesIO
+from pathlib import Path
 
 import pytest
 from factories import sample_report
+from PIL import Image, ImageStat
 from pydantic import ValidationError
 
-from aec.models import EvidenceCard, Report
+from aec.cards import CardError, card_box, render_card
+from aec.models import EvidenceCard, PageGeometry, Report
+
+ROOT = Path(__file__).resolve().parent.parent
+FIXTURE = ROOT / "fixtures" / "aec" / "resize-01"
+PAGE = PageGeometry(page=0, width=1600, height=1200)
 
 
 def card(**overrides):
@@ -83,3 +91,75 @@ def test_report_defaults_to_no_cards_and_accepts_an_old_json() -> None:
 def test_report_accepts_cards() -> None:
     report = sample_report().model_copy(update={"evidence_cards": [card()]})
     assert report.evidence_cards[0].finding_id == card().finding_id
+
+
+def test_card_box_is_the_padded_polygon_bbox() -> None:
+    polygon = [[100.0, 100.0], [500.0, 100.0], [500.0, 500.0], [100.0, 500.0]]
+    assert card_box(polygon, PAGE) == [92, 92, 508, 508]
+
+
+def test_card_box_rounds_outward_on_fractional_polygons() -> None:
+    polygon = [[100.4, 100.0], [500.6, 100.0], [500.6, 500.9], [100.4, 500.9]]
+    assert card_box(polygon, PAGE) == [92, 92, 509, 509]
+
+
+def test_card_box_pads_then_clamps_at_both_page_edges() -> None:
+    top_left = [[0.0, 0.0], [20.0, 0.0], [20.0, 20.0], [0.0, 20.0]]
+    assert card_box(top_left, PAGE) == [0, 0, 28, 28]
+    bottom_right = [
+        [1500.0, 1100.0],
+        [1600.0, 1100.0],
+        [1600.0, 1200.0],
+        [1500.0, 1200.0],
+    ]
+    assert card_box(bottom_right, PAGE) == [1492, 1092, 1600, 1200]
+
+
+def test_card_box_keeps_a_one_pixel_box_for_a_zero_pad_point() -> None:
+    assert card_box([[5.0, 5.0]], PAGE, pad_px=0) == [5, 5, 6, 6]
+
+
+def test_card_box_rejects_an_empty_polygon() -> None:
+    with pytest.raises(CardError):
+        card_box([], PAGE)
+
+
+def test_card_box_rejects_a_polygon_outside_the_page() -> None:
+    with pytest.raises(CardError):
+        card_box([[2000.0, 2000.0], [2100.0, 2100.0]], PAGE)
+
+
+def test_card_box_rejects_a_negative_pad() -> None:
+    with pytest.raises(CardError):
+        card_box([[100.0, 100.0], [200.0, 200.0]], PAGE, pad_px=-1)
+
+
+def test_render_card_is_a_deterministic_rgb_png() -> None:
+    image_path = FIXTURE / "a.png"
+    box = [92, 92, 508, 508]
+    first = render_card(image_path, box)
+    second = render_card(image_path, box)
+    assert first == second
+    assert first.startswith(b"\x89PNG\r\n\x1a\n")
+    with Image.open(BytesIO(first)) as image:
+        assert image.mode == "RGB"
+        assert image.size == (416, 416)
+        assert max(ImageStat.Stat(image).stddev) > 0  # plan pixels, not a blank tile
+
+
+def test_render_card_caps_the_long_side() -> None:
+    data = render_card(FIXTURE / "b.png", [0, 0, 1600, 1200], max_side=200)
+    with Image.open(BytesIO(data)) as image:
+        assert image.size == (200, 150)
+
+
+def test_render_card_rejects_a_box_outside_the_image() -> None:
+    with pytest.raises(CardError):
+        render_card(FIXTURE / "a.png", [1600, 0, 1700, 10])
+    with pytest.raises(CardError):
+        render_card(FIXTURE / "a.png", [10, 10, 10, 20])
+
+
+def test_render_card_rejects_a_non_positive_max_side() -> None:
+    with pytest.raises(CardError):
+        render_card(FIXTURE / "a.png", [0, 0, 10, 10], max_side=0)
