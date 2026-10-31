@@ -48,8 +48,12 @@ and nothing keeps running in the background.
 
 Each measurement is written to its own folder, `<workspace>/<run id>/`, where the
 run id is 32 lowercase hexadecimal characters chosen by the server. A run folder
-holds `report.json`, a `cards/` folder when evidence cards were requested, and an
-`export/` folder once you export. Two runs never share a folder.
+holds `report.json`, `report.md` (the same report as Markdown), a `cards/`
+folder when evidence cards were requested, and an `export/` folder once you
+export. Two runs never share a folder. The measurement answers with the pair
+name, the counts of verified, not-compared and rejected elements, the report
+path and `cards`: the number of evidence cards written, or `null` when cards
+were not requested.
 
 ## Routes
 
