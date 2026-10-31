@@ -155,8 +155,8 @@ def _score_pair(result: PairResult, truth: dict[str, Any]) -> dict[str, Any]:
 
 
 def run_eval(
-    fixtures: Path,
-    out_dir: Path,
+    fixtures: Path | str,
+    out_dir: Path | str,
     pairs: list[str] | None = None,
     *,
     live: bool = False,
@@ -164,8 +164,12 @@ def run_eval(
     """Score every selected fixture pair and write ``metrics.json``.
 
     ``pairs`` is the manifest's name for the selection: the fixture pair ids to
-    run, or ``None`` for all of them.
+    run, or ``None`` for all of them. Both paths may arrive as strings: the MCP
+    server publishes them as ``string`` in its schema, and the first thing this
+    function does with ``fixtures`` is join it, which a ``str`` cannot do.
     """
+    fixtures = Path(fixtures)
+    out_dir = Path(out_dir)
     pair_dirs = sorted(
         path for path in (fixtures / "aec").iterdir() if path.is_dir()
     )

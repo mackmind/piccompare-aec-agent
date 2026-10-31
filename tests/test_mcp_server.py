@@ -277,6 +277,32 @@ def test_tools_call_measure_writes_a_report_that_verifies(
     assert ready.payload("aec.verify", {"report": payload["report"]})["ok"] is True
 
 
+def test_tools_call_eval_runs_offline_and_scores_the_fixture(
+    ready: Server, tmp_path: Path
+) -> None:
+    # The published arguments are strings, and run_eval's first use is
+    # ``fixtures / "aec"``: a str has no ``/``, so this call used to come back
+    # as an unsupported-operand TypeError instead of a score.
+    out = tmp_path / "eval"
+    response = ready.call(
+        "aec.eval",
+        {
+            "fixtures": "fixtures",
+            "out": str(out),
+            "pairs": ["resize-01"],
+            "live": False,
+        },
+    )
+    result = response["result"]
+    assert result["isError"] is False, result
+    metrics = json.loads(result["content"][0]["text"])
+    assert metrics["mode"] == "offline_deterministic"
+    assert metrics["totals"]["pairs"] == 1
+    assert metrics["totals"]["pairs_passed"] == 1
+    assert metrics["totals"]["false_positives"] == 0
+    assert (out / "metrics.json").is_file()
+
+
 def test_an_unknown_tool_is_an_invalid_params_error(ready: Server) -> None:
     response = ready.call("aec.nope", {})
     assert response["error"]["code"] == -32602
