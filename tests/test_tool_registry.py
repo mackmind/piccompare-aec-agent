@@ -126,3 +126,121 @@ def test_the_module_entry_point_prints_the_manifest() -> None:
     )
     assert completed.returncode == 0, completed.stderr
     assert completed.stdout == tool_registry.render_manifest()
+
+
+def _tool(name: str) -> tool_registry.Tool:
+    return next(tool for tool in TOOLS if tool.name == name)
+
+
+def _assert_valid_input_schema(schema: dict[str, object]) -> None:
+    """Check the structural rules a JSON Schema validator enforces here.
+
+    ``jsonschema`` is not a permitted dependency, so this asserts what the meta
+    schema would: an object type, properties and required agreeing, a known
+    type per property, string-only enum values and typed array items.
+    """
+    scalar_types = {"string", "integer", "number", "boolean"}
+    assert schema["type"] == "object"
+    properties = schema["properties"]
+    required = schema["required"]
+    assert isinstance(properties, dict) and properties
+    assert isinstance(required, list)
+    assert set(required) <= set(properties)
+    for name, prop in properties.items():
+        assert isinstance(name, str) and isinstance(prop, dict), name
+        assert prop["type"] in scalar_types | {"array", "object"}, prop
+        if "enum" in prop:
+            assert prop["type"] == "string"
+            assert prop["enum"] and all(isinstance(value, str) for value in prop["enum"])
+        if prop["type"] == "array":
+            assert prop["items"]["type"] in scalar_types
+        if "format" in prop:
+            assert prop["type"] == "string" and isinstance(prop["format"], str)
+
+
+def test_every_tool_derives_a_valid_input_schema() -> None:
+    for tool in TOOLS:
+        _assert_valid_input_schema(tool.json_schema)
+
+
+def test_measure_derives_a_fixture_only_object() -> None:
+    schema = _tool("aec.measure").json_schema
+    assert schema == {
+        "type": "object",
+        "properties": {
+            "fixture": {"type": "string"},
+            "out": {"type": "string"},
+        },
+        "required": ["fixture"],
+    }
+
+
+def test_verify_derives_a_report_only_object() -> None:
+    schema = _tool("aec.verify").json_schema
+    assert schema == {
+        "type": "object",
+        "properties": {
+            "report": {"type": "string"},
+            "inputs_dir": {"type": "string"},
+        },
+        "required": ["report"],
+    }
+
+
+def test_crop_derives_three_required_strings() -> None:
+    schema = _tool("piccompare.get_crop").json_schema
+    assert schema == {
+        "type": "object",
+        "properties": {
+            "comparison_id": {"type": "string"},
+            "region_id": {"type": "string"},
+            "view": {"type": "string"},
+        },
+        "required": ["comparison_id", "region_id", "view"],
+    }
+
+
+def test_enum_shorthand_becomes_a_string_enum() -> None:
+    export = _tool("aec.export").json_schema["properties"]["format"]
+    assert export == {"type": "string", "enum": ["svg", "dxf", "both"]}
+    side = _tool("piccompare.get_page_image").json_schema["properties"]["side"]
+    assert side == {"type": "string", "enum": ["a", "b"]}
+
+
+def test_path_shorthand_becomes_a_path_formatted_string() -> None:
+    document_a = _tool("piccompare.compare_documents").json_schema["properties"]["a"]
+    assert document_a == {"type": "string", "format": "path"}
+
+
+def test_array_shorthand_becomes_a_typed_array() -> None:
+    schema = _tool("aec.eval").json_schema
+    assert schema["properties"]["pairs"] == {
+        "type": "array",
+        "items": {"type": "string"},
+    }
+    assert "pairs" not in schema["required"]
+    assert schema["properties"]["live"] == {"type": "boolean"}
+
+
+def test_unknown_shorthand_raises_instead_of_guessing() -> None:
+    with pytest.raises(tool_registry.SchemaError, match="unknown shorthand"):
+        tool_registry.derive_input_schema({"value": "float"})
+
+
+@pytest.mark.parametrize("shorthand", ["|null", "svg||dxf"])
+def test_malformed_shorthand_raises(shorthand: str) -> None:
+    with pytest.raises(tool_registry.SchemaError):
+        tool_registry.derive_input_schema({"value": shorthand})
+
+
+def test_the_manifest_still_carries_the_shorthand() -> None:
+    text = MANIFEST.read_text(encoding="utf-8")
+    assert '"input_schema": {"fixture": "string", "out": "string|null"}' in text
+    protocol = tool_registry.tools_list()[0]
+    assert "input_schema" not in protocol
+
+
+def test_protocol_entries_carry_the_camel_case_schema() -> None:
+    for entry in tool_registry.tools_list():
+        assert set(entry) == {"name", "description", "inputSchema"}
+        _assert_valid_input_schema(entry["inputSchema"])

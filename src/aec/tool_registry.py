@@ -34,6 +34,65 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 MANIFEST_PATH = REPO_ROOT / "mcp" / "manifest.json"
 
 
+class SchemaError(ValueError):
+    """A shorthand type that has no faithful JSON Schema translation."""
+
+
+# The scalar half of the shorthand vocabulary. `path` is a string with a
+# format hint; the protocol itself only knows JSON types.
+SCALAR_TYPES = {
+    "string": "string",
+    "path": "string",
+    "integer": "integer",
+    "boolean": "boolean",
+}
+
+
+def _type_schema(shorthand: str) -> dict[str, Any]:
+    if "|" in shorthand:
+        values = shorthand.split("|")
+        if not all(values):
+            raise SchemaError(f"empty alternative in shorthand type {shorthand!r}")
+        return {"type": "string", "enum": values}
+    if shorthand == "path":
+        return {"type": "string", "format": "path"}
+    try:
+        return {"type": SCALAR_TYPES[shorthand]}
+    except KeyError:
+        raise SchemaError(f"unknown shorthand type {shorthand!r}") from None
+
+
+def _property_schema(shorthand: str) -> tuple[dict[str, Any], bool]:
+    """One parameter's schema and whether the protocol requires it."""
+    kind = shorthand.strip()
+    required = True
+    if kind.endswith("|null"):
+        kind, required = kind[: -len("|null")], False
+    if not kind:
+        raise SchemaError(f"empty shorthand type {shorthand!r}")
+    if kind.endswith("[]"):
+        return {"type": "array", "items": _type_schema(kind[:-2])}, required
+    return _type_schema(kind), required
+
+
+def derive_input_schema(shorthand: dict[str, str]) -> dict[str, Any]:
+    """Translate the manifest shorthand into the protocol's JSON Schema.
+
+    ``|null`` marks an argument optional and leaves it out of ``required``
+    rather than widening the type to allow null: every handler in this registry
+    treats an omitted argument and a null one the same way, and an assistant
+    that has no value for an argument simply omits it.
+    """
+    properties: dict[str, Any] = {}
+    required: list[str] = []
+    for name, kind in shorthand.items():
+        schema, is_required = _property_schema(kind)
+        properties[name] = schema
+        if is_required:
+            required.append(name)
+    return {"type": "object", "properties": properties, "required": required}
+
+
 @dataclass(frozen=True)
 class HandlerRef:
     """A handler named by module and attribute, imported when it is resolved.
@@ -68,6 +127,19 @@ class Tool:
     example: str
     read_only: bool
     handler: HandlerRef
+
+    @property
+    def json_schema(self) -> dict[str, Any]:
+        """The input schema this tool publishes to the protocol."""
+        return derive_input_schema(self.input_schema)
+
+    def protocol_entry(self) -> dict[str, Any]:
+        """One ``tools/list`` entry; the protocol spells it ``inputSchema``."""
+        return {
+            "name": self.name,
+            "description": self.description,
+            "inputSchema": self.json_schema,
+        }
 
 
 OPS = "aec.ops"
@@ -249,6 +321,11 @@ TOOLS: list[Tool] = [
         handler=HandlerRef(CLIENT, "PicCompareClient.align"),
     ),
 ]
+
+
+def tools_list() -> list[dict[str, Any]]:
+    """The body of a ``tools/list`` response, from the same entries."""
+    return [tool.protocol_entry() for tool in TOOLS]
 
 
 def render_manifest() -> str:
