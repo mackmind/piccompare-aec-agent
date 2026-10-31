@@ -133,7 +133,11 @@ def test_every_aec_module_is_listed_in_the_architecture_components() -> None:
         if path.name != "__init__.py"
     )
     assert modules
-    missing = [name for name in modules if name not in table]
+    missing = [
+        name
+        for name in modules
+        if f"`src/aec/{name}`" not in table and f"`{name}`" not in table
+    ]
     assert not missing, missing
 
 
