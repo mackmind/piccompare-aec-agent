@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Sequence
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -12,6 +13,7 @@ from aec.models import (
     DEMO_NOTICE,
     Element,
     ElementMatch,
+    EvidenceCard,
     Finding,
     MeasurementDelta,
     PageGeometry,
@@ -38,6 +40,7 @@ def build_report(
     usage: dict[str, Any],
     limitations: list[str],
     generated_at: str | None = None,
+    evidence_cards: Sequence[EvidenceCard] = (),
 ) -> Report:
     report = Report(
         schema_version="piccompare-aec-report/1.0",
@@ -58,6 +61,7 @@ def build_report(
         evidence=evidence,
         usage=usage,
         limitations=limitations,
+        evidence_cards=list(evidence_cards),
         digest="",
     )
     return report.model_copy(update={"digest": report_digest(report)})
@@ -95,6 +99,26 @@ def render_markdown(report: Report) -> str:
             )
     else:
         lines.append("None.")
+    if report.evidence_cards:
+        change_types = {
+            item.finding_id: item.change_type
+            for item in [*report.findings, *report.rejected, *report.not_compared]
+        }
+        lines.extend(
+            [
+                "",
+                "## Evidence cards",
+                "",
+                "| Finding | Change type | Side | Path | SHA-256 | Bytes |",
+                "|---|---|---|---|---|---|",
+            ]
+        )
+        for card in report.evidence_cards:
+            lines.append(
+                f"| `{card.finding_id}` | "
+                f"{change_types.get(card.finding_id, 'unknown')} | "
+                f"{card.side} | `{card.path}` | `{card.sha256}` | {card.bytes} |"
+            )
     lines.extend(["", "## Limitations", ""])
     lines.extend(f"- {limitation}" for limitation in report.limitations)
     lines.extend(

@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from aec.cards import collect_cards
 from aec.compare import candidate_findings, compare_measurements
 from aec.correspondence import match_elements
 from aec.critic import DeterministicCritic
@@ -15,6 +16,7 @@ from aec.evidence import build_evidence
 from aec.models import (
     Element,
     ElementMatch,
+    EvidenceCard,
     Finding,
     MeasurementDelta,
     PageGeometry,
@@ -75,7 +77,12 @@ def _scale(config: dict[str, Any]) -> ScaleCalibration:
     )
 
 
-def run_pair(fixture_dir: str | Path, out_dir: str | Path | None = None) -> PairResult:
+def run_pair(
+    fixture_dir: str | Path,
+    out_dir: str | Path | None = None,
+    *,
+    cards: bool = False,
+) -> PairResult:
     directory = Path(fixture_dir)
     config = json.loads((directory / "config.json").read_text(encoding="utf-8"))
     plan = plan_from_config(config)
@@ -115,6 +122,25 @@ def run_pair(fixture_dir: str | Path, out_dir: str | Path | None = None) -> Pair
     not_compared = [
         finding for finding in findings if finding.status == "not_compared"
     ]
+    report_dir = Path(out_dir) if out_dir is not None else None
+    limitations = [
+        "Synthetic plans only; no real-world accuracy claim.",
+        "Deterministic offline critic; no live Meta call in this run.",
+    ]
+    evidence_cards: list[EvidenceCard] = []
+    if cards:
+        if report_dir is None:
+            raise ValueError("cards require an output directory")
+        elements_by_id = {
+            element.element_id: element for element in [*elements_a, *elements_b]
+        }
+        evidence_cards = collect_cards(
+            report_dir,
+            directory,
+            verified,
+            elements_by_id,
+            evidence=evidence,
+        )
     report = build_report(
         engine={"name": "fixture", "mode": "offline_deterministic"},
         inputs={"a": "a.png", "b": "b.png"},
@@ -137,10 +163,8 @@ def run_pair(fixture_dir: str | Path, out_dir: str | Path | None = None) -> Pair
             "fallback_used": False,
             "note": "Offline fixture evaluation; no Meta model called.",
         },
-        limitations=[
-            "Synthetic plans only; no real-world accuracy claim.",
-            "Deterministic offline critic; no live Meta call in this run.",
-        ],
+        limitations=limitations,
+        evidence_cards=evidence_cards,
     )
     report_path: Path | None = None
     if out_dir is not None:

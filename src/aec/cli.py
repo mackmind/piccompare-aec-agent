@@ -15,13 +15,18 @@ from aec.pipeline import run_pair
 
 def _measure(args: argparse.Namespace) -> int:
     out = Path(args.out) if args.out else None
-    result = run_pair(Path(args.fixture), out)
+    if args.cards and out is None:
+        print("FAIL --cards needs --out: cards are written under the report directory")
+        return 2
+    result = run_pair(Path(args.fixture), out, cards=args.cards)
     print(
         f"pair={result.pair_id} verified={len(result.verified)} "
         f"not_compared={len(result.not_compared)} rejected={len(result.rejected)}"
     )
     if result.report_path:
         print(f"report={result.report_path}")
+    if args.cards:
+        print(f"cards={len(result.report.evidence_cards)}")
     return 0
 
 
@@ -74,6 +79,11 @@ def main(argv: list[str] | None = None) -> int:
     measure = subparsers.add_parser("measure", help="measure one fixture pair")
     measure.add_argument("--fixture", required=True)
     measure.add_argument("--out")
+    measure.add_argument(
+        "--cards",
+        action="store_true",
+        help="write PNG evidence cards under the report directory",
+    )
     measure.set_defaults(handler=_measure)
 
     verify_parser = subparsers.add_parser("verify", help="verify a report")
