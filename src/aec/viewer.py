@@ -145,7 +145,7 @@ def _joined(values: Sequence[object]) -> str:
 
 def _section(section_id: str, title: str, body: str) -> str:
     return (
-        f'<section id="{section_id}">\n'
+        f'<section id="{_text(section_id)}">\n'
         f"<h2>{_text(title)}</h2>\n"
         f"{body}\n"
         "</section>"

@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import Any
 
 from aec.engine import resolve_engine
-from aec.evidence import load_report
+from aec.evidence import read_report, report_digest
 from aec.evidence import verify as verify_report
 from aec.export import export_dxf, export_svg
 from aec.models import Report
@@ -100,14 +100,20 @@ def view(
     a CI artifact needs. A report that fails that check returns ``ok`` false and
     nothing is written.
 
-    Raises :class:`OpsError` when the report cannot be read or validated or a
-    card image is missing. No message carries an absolute path.
+    Raises :class:`OpsError` when the report cannot be read or validated, when
+    its digest does not cover its own content, or when a card image is missing.
+    No message carries an absolute path.
     """
     report_path = Path(report)
     try:
-        model = load_report(report_path)
+        data = read_report(report_path)
     except OSError as error:
         raise OpsError(f"cannot read report: {redact(str(error))}") from error
+    except ValueError as error:
+        detail = " ".join(redact(str(error)).split())[:300]
+        raise OpsError(f"report is not valid: {detail}") from error
+    try:
+        model = Report.model_validate(data)
     except ValueError as error:
         detail = " ".join(redact(str(error)).split())[:300]
         raise OpsError(f"report is not valid: {detail}") from error
@@ -123,14 +129,23 @@ def view(
     out_path = Path(out)
     if out_path.resolve() == report_path.resolve():
         raise OpsError("refusing to replace the report with its own page")
+    # Without --inputs-dir nothing else reads the digest, so an edited report
+    # would render beside a digest that no longer covers it. The comparison is
+    # on the raw mapping: a model round-trip would default a field the file
+    # never carried and report a false mismatch.
+    if data.get("digest") != report_digest(data):
+        raise OpsError("report digest mismatch")
     try:
         page = render_report_html(
             model, embed_cards=True, cards_dir=report_path.parent
         )
     except ViewerError as error:
         raise OpsError(str(error)) from error
-    out_path.parent.mkdir(parents=True, exist_ok=True)
-    out_path.write_text(page, encoding="utf-8", newline="\n")
+    try:
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        out_path.write_text(page, encoding="utf-8", newline="\n")
+    except (OSError, UnicodeError) as error:
+        raise OpsError(f"cannot write page: {redact(str(error))}") from error
     return {
         "ok": True,
         "out": str(out_path),

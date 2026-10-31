@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 from aec.cli import main
@@ -45,6 +46,38 @@ def test_view_accepts_the_inputs_directory_it_was_given(tmp_path: Path) -> None:
     )
     assert code == 0
     assert out.is_file()
+
+
+def test_view_refuses_a_report_whose_digest_no_longer_covers_it(
+    tmp_path: Path, capsys
+) -> None:
+    # No inputs check here, so the digest is the only thing standing between an
+    # edited report and a page that would present it as measured.
+    report = _copy_sample(tmp_path / "report.json")
+    data = json.loads(report.read_text(encoding="utf-8"))
+    data["findings"][0]["claim"] = "a claim that was never measured"
+    report.write_text(json.dumps(data, ensure_ascii=True), encoding="ascii")
+    out = tmp_path / "page.html"
+    assert main(["view", "--report", str(report), "--out", str(out)]) == 2
+    assert not out.exists()
+    printed = capsys.readouterr().out
+    assert "FAIL" in printed
+    assert "report digest mismatch" in printed
+
+
+def test_view_reports_an_unwritable_page_without_a_traceback(
+    tmp_path: Path, capsys
+) -> None:
+    # A file where the output directory should be: the write fails after the
+    # page is built, and the caller gets FAIL rather than a traceback.
+    blocker = tmp_path / "blocker"
+    blocker.write_text("not a directory", encoding="ascii")
+    out = blocker / "page.html"
+    assert main(["view", "--report", str(SAMPLE), "--out", str(out)]) == 2
+    printed = capsys.readouterr().out
+    assert "FAIL" in printed
+    assert "cannot write page" in printed
+    assert str(tmp_path) not in printed
 
 
 def test_view_refuses_a_report_whose_inputs_do_not_verify(
