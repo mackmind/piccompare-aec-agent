@@ -4,6 +4,7 @@ from pathlib import Path
 
 from aec.evidence import sha256_file, verify
 from aec.models import Report
+from aec.report import render_markdown
 
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -76,6 +77,15 @@ def test_committed_sample_report_carries_verifiable_cards() -> None:
     assert "## Evidence cards" in markdown
     for card in report.evidence_cards:
         assert card.path in markdown
+
+
+def test_committed_markdown_matches_the_renderer() -> None:
+    for name in ("sample", "live"):
+        report = Report.model_validate_json(
+            (ROOT / "demo" / f"{name}-report.json").read_text(encoding="utf-8")
+        )
+        committed = (ROOT / "demo" / f"{name}-report.md").read_text(encoding="utf-8")
+        assert committed == render_markdown(report)
 
 
 def test_committed_live_report_verifies_and_names_the_live_provider() -> None:
