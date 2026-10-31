@@ -77,7 +77,7 @@ Stated plainly, this is what the page does and does not protect.
 - **Loopback only.** The server checks the address against a short allowlist -
   `127.0.0.1`, `::1` and `localhost` - before it opens a socket, and refuses to
   start for anything else. The command has no switch that widens this.
-- **One session token per run of the server.** It is created at random when the
+- **One session token per server process.** It is created at random when the
   server starts and printed inside the URL. Every action that measures, verifies
   or exports must present it; a request without it, or with another run's token,
   is refused. Reading a page does not need the token.
