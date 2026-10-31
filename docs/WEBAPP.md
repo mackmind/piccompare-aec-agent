@@ -77,6 +77,11 @@ Stated plainly, this is what the page does and does not protect.
 - **Loopback only.** The server checks the address against a short allowlist -
   `127.0.0.1`, `::1` and `localhost` - before it opens a socket, and refuses to
   start for anything else. The command has no switch that widens this.
+- **One name per server.** A request must address the server as `127.0.0.1`,
+  `localhost` or `[::1]` on the port the server is bound to. A page on another
+  host name that resolves to this address - a DNS-rebinding page - sends that
+  other name and is refused with `403` before anything is served, so it cannot
+  read the token from the start page or drive an action with it.
 - **One session token per server process.** It is created at random when the
   server starts and printed inside the URL. Every action that measures, verifies
   or exports must present it; a request without it, or with another run's token,
@@ -92,9 +97,12 @@ Stated plainly, this is what the page does and does not protect.
   URL-encoded form is treated as empty, which means no token and a refusal.
 - **Names are checked, not trusted.** A run id must be 32 lowercase hexadecimal
   characters, a file name is restricted to letters, digits, dot, dash and
-  underscore, and every requested file must resolve directly inside the folder it
-  belongs to. A card is served only while its bytes hash to the digest the report
-  recorded, so a picture edited after the run is refused rather than shown.
+  underscore, and every requested file, the folder holding it and the run's
+  `report.json` must resolve directly inside the run folder. A `cards/` or
+  `export/` folder, or a report file, that is a link to somewhere else is refused
+  rather than followed. A card is served only while its bytes hash to the digest
+  the report recorded, so a picture edited after the run is refused rather than
+  shown.
 - **Every answer carries the same headers**, including a content security policy
   that allows no script and no remote asset, `nosniff`, `no-referrer`,
   `no-store` and `DENY` framing. The pages load no JavaScript and no file from
