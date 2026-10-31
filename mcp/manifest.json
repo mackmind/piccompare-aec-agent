@@ -1,6 +1,6 @@
 {
   "schema": "piccompare-aec-capabilities/1.0",
-  "note": "Command-line and external-engine capabilities. This public repository does not ship an AI-assistant tool server; this manifest is the stable index of the commands a future wrapper would expose. MCP means Model Context Protocol, a standard way for AI assistants to discover tools.",
+  "note": "Generated from src/aec/tool_registry.py by python -m aec.tool_registry --write-manifest; do not edit it by hand. The registry is the single source of truth for the tools this repository offers AI assistants over the Model Context Protocol (MCP): transport and status say how each tool is served today, and the protocol's JSON Schema is derived from the same entry.",
   "tools": [
     {
       "name": "aec.measure",
