@@ -24,6 +24,7 @@ against the committed examples.
 | Live evaluation | available; at the last run, 10 of 12 pairs clean (see `docs/LIVE-RUN.md`) | `python scripts/run_eval.py --fixtures fixtures --live --out runs/eval/live` |
 | Committed live run record | available; verifies like any report | `python -m aec verify --report demo/live-report.json --inputs-dir fixtures/aec/resize-01` |
 | Call the tools from an AI assistant (MCP) | available; a local server publishes the same operations as 12 tools over JSON-RPC 2.0 on standard input and output, with no network port and no extra dependency | `python -m aec.mcp_server`, configured as in [docs/MCP.md](MCP.md) |
+| View and measure from a local web page | available; loopback only, per-session token, no authentication | `python -m aec serve` |
 | Legal exhibit workflow | draft | `skills/piccompare-legal/SKILL.md` |
 | Print and barcode workflow | draft | `skills/piccompare-print/SKILL.md` |
 | Full computer-aided design reconstruction | not implemented | — |
