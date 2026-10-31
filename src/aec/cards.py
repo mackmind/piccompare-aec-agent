@@ -50,10 +50,22 @@ def card_box(
     points = [(float(point[0]), float(point[1])) for point in polygon_px]
     if not points:
         raise CardError("empty polygon: a card box needs at least one point")
-    left = min(page.width, max(0, math.floor(min(x for x, _ in points)) - pad_px))
-    top = min(page.height, max(0, math.floor(min(y for _, y in points)) - pad_px))
-    right = min(page.width, max(0, math.ceil(max(x for x, _ in points)) + pad_px))
-    bottom = min(page.height, max(0, math.ceil(max(y for _, y in points)) + pad_px))
+    raw_left = math.floor(min(x for x, _ in points)) - pad_px
+    raw_top = math.floor(min(y for _, y in points)) - pad_px
+    raw_right = math.ceil(max(x for x, _ in points)) + pad_px
+    raw_bottom = math.ceil(max(y for _, y in points)) + pad_px
+    # A polygon wholly off the page must not clamp to a one-pixel sliver.
+    if (
+        raw_right <= 0
+        or raw_bottom <= 0
+        or raw_left >= page.width
+        or raw_top >= page.height
+    ):
+        raise CardError("card box lies wholly outside the page")
+    left = min(page.width, max(0, raw_left))
+    top = min(page.height, max(0, raw_top))
+    right = min(page.width, max(0, raw_right))
+    bottom = min(page.height, max(0, raw_bottom))
     if right <= left:
         right = min(page.width, left + 1)
     if bottom <= top:

@@ -165,6 +165,19 @@ def test_card_box_rejects_a_polygon_outside_the_page() -> None:
         card_box([[2000.0, 2000.0], [2100.0, 2100.0]], PAGE)
 
 
+def test_card_box_rejects_a_polygon_wholly_left_of_the_page() -> None:
+    # Clamping this used to return [0, 0, 1, 1]: a one-pixel sliver written as
+    # that finding's crop.
+    with pytest.raises(CardError, match="outside the page"):
+        card_box([[-100.0, -100.0], [-50.0, -50.0]], PAGE)
+
+
+def test_card_box_rejects_a_polygon_wholly_above_the_page() -> None:
+    # Inside the page horizontally, but every y is above the top edge.
+    with pytest.raises(CardError, match="outside the page"):
+        card_box([[100.0, -100.0], [200.0, -50.0]], PAGE)
+
+
 def test_card_box_rejects_a_negative_pad() -> None:
     with pytest.raises(CardError):
         card_box([[100.0, 100.0], [200.0, 200.0]], PAGE, pad_px=-1)
