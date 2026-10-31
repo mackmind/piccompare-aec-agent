@@ -70,9 +70,12 @@ NOTIFICATION_METHODS = frozenset(
     }
 )
 
-_WINDOWS_PATH = re.compile(r"(?<![A-Za-z0-9_])[A-Za-z]:[\\/][^\s\"']*")
-_UNC_PATH = re.compile(r"\\\\[^\s\"']*")
-_POSIX_PATH = re.compile(r"(?<![A-Za-z0-9_:./])/(?:[^\s\"'/]+/)*[^\s\"']*")
+# A path may contain spaces (``C:\Program Files\...``), so a path token ends at
+# a quote or a newline, not at the first whitespace: stopping at a space would
+# redact the head and send the rest of the path to the client.
+_WINDOWS_PATH = re.compile(r"(?<![A-Za-z0-9_])[A-Za-z]:[\\/][^\"'\r\n]*")
+_UNC_PATH = re.compile(r"\\\\[^\"'\r\n]*")
+_POSIX_PATH = re.compile(r"(?<![A-Za-z0-9_:./])/(?:[^\"'/\r\n]+/)*[^\"'\r\n]*")
 # Only the key matters; the value is never printed anywhere by this repository.
 _SECRET_ENV = ("META_API_KEY",)
 

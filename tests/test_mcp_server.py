@@ -548,6 +548,39 @@ def test_safe_message_strips_absolute_paths_and_env_secrets(monkeypatch) -> None
     assert len(safe_message("x" * 5000)) == 2000
 
 
+def test_safe_message_redacts_a_path_that_contains_a_space() -> None:
+    # The path patterns used to stop at the first whitespace, so
+    # ``C:\Program Files\Python313\x.json`` became
+    # ``<path> Files\Python313\x.json`` and the tail reached the client.
+    assert (
+        safe_message("failed: C:\\Program Files\\Python313\\x.json")
+        == "failed: <path>"
+    )
+
+
+@pytest.mark.parametrize(
+    ("message", "leaked"),
+    [
+        # Quoted: the quotes stay, everything inside them goes.
+        ('cannot open "C:\\Program Files\\Python313\\a b.json": denied', "Python313"),
+        ('cannot open "C:\\Program Files\\Python313\\a b.json": denied', "a b.json"),
+        # Punctuation right after the path must not shelter the tail either.
+        ("failed: D:\\work dir\\x.json, then more", "x.json"),
+        ("(C:\\Temp\\y z.json)", "y z.json"),
+        # A newline ends the path, and nothing before it survives.
+        ("failed: C:\\a b\\c.json\nnext", "c.json"),
+        # The rule is the same on the other separator, not Windows only.
+        ("open '/home/some one/x.json' failed", "x.json"),
+    ],
+)
+def test_safe_message_redacts_the_whole_path_not_just_its_head(
+    message: str, leaked: str
+) -> None:
+    text = safe_message(message)
+    assert "<path>" in text
+    assert leaked not in text
+
+
 def test_safe_message_leaves_a_url_alone() -> None:
     # A protocol version or documentation link must survive the path patterns.
     url = "https://modelcontextprotocol.io/specification/2025-06-18"

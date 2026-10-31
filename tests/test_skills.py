@@ -32,7 +32,7 @@ def test_skills_do_not_claim_live_or_signed_capability() -> None:
     # limits, and must keep deferring the live path to the runbook.
     assert "offline default" in aec
     assert "docs/LIVE-RUN.md" in aec
-    assert "never “signed”" in aec or "never “signed”" in aec
+    assert "never “signed”" in aec
     legal = (ROOT / "skills" / "piccompare-legal" / "SKILL.md").read_text(encoding="utf-8")
     assert "draft" in legal.lower()
     print_skill = (ROOT / "skills" / "piccompare-print" / "SKILL.md").read_text(
