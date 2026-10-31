@@ -67,6 +67,11 @@ What the steps do:
 5. re-check that report from its saved evidence;
 6. export the measured rooms as a drawing overlay.
 
+To do the same from a browser, run
+`.venv-aec/Scripts/python.exe -m aec serve` and open the URL it prints; the page
+is local to this machine only. See [docs/WEBAPP.md](docs/WEBAPP.md) for what it
+does and its limits.
+
 Inspect the committed examples:
 [demo/sample-report.md](demo/sample-report.md), the live run record
 [demo/live-report.md](demo/live-report.md) and the measured overlay
@@ -195,6 +200,9 @@ measurement is correct.
 MIT licence (a permissive open-source licence) for this repository only. The
 PicCompare engine is a separate program and is not included.
 See [LICENSE](LICENSE) and [NOTICE](NOTICE).
+
+The local web page is part of this MIT repository; the comparison engine is not
+included.
 
 ## What was built during the event
 
