@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import shutil
 import socket
 from pathlib import Path
@@ -432,6 +433,30 @@ def test_a_tampered_report_does_not_verify_in_the_page(tmp_path: Path) -> None:
     assert "Report does not verify" in text
     assert "report digest mismatch" in text
     assert "a claim that was never measured" not in text
+
+
+def test_a_report_whose_digest_no_longer_covers_it_is_not_rendered(
+    tmp_path: Path,
+) -> None:
+    """The page prints the digest, so a hand-edited report must not render.
+
+    Without this check a report edited after the run was shown beside a digest
+    that no longer covered it; ``ops.view`` already refuses the same report.
+    """
+    with running_app(tmp_path) as server, client(server) as connection:
+        run_id, location = measure(connection, server.token)
+        path = server.workspace / run_id / "report.json"
+        data = json.loads(path.read_text(encoding="utf-8"))
+        data["digest"] = "0" * 64
+        path.write_text(json.dumps(data, ensure_ascii=True), encoding="ascii")
+        status, headers, body = request(connection, "GET", location)
+    text = body.decode("utf-8")
+    assert status == 400
+    assert headers["Content-Type"] == "application/json"
+    assert _json_error(body) == "report digest mismatch"
+    assert "room_resized" not in text
+    assert str(tmp_path) not in text
+    assert not re.search(r"[A-Za-z]:[\\/]", text)
 
 
 def test_measure_without_cards_renders_no_card_images(tmp_path: Path) -> None:

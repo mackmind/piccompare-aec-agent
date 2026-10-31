@@ -51,7 +51,8 @@ from typing import Any, NoReturn, cast
 from urllib.parse import parse_qs, quote, urlsplit
 
 from aec import ops, tool_registry
-from aec.evidence import load_report
+from aec.evidence import load_report, read_report, report_digest
+from aec.models import Report
 from aec.ops import OpsError
 from aec.redact import redact
 from aec.viewer import render_report_html
@@ -452,7 +453,14 @@ class _Handler(BaseHTTPRequestHandler):
 
     def _run_page(self, run_id: str) -> None:
         run_dir = self._run_directory(run_id)
-        report = load_report(_report_file(run_dir))
+        data = read_report(_report_file(run_dir))
+        # The page presents the report's own digest as evidence, so a report
+        # edited after the run must not render under a digest that no longer
+        # covers it. The comparison is on the raw mapping, as in ``ops.view``:
+        # a model round-trip would default a field the file never carried.
+        if data.get("digest") != report_digest(data):
+            raise OpsError("report digest mismatch")
+        report = Report.model_validate(data)
         page = render_report_html(
             report,
             card_url_prefix=f"/run/{run_id}/card",
