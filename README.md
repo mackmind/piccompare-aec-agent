@@ -29,6 +29,10 @@ spaces and walls) across the two versions, refuses to compare elements whose
 definitions differ (for example, a room that was split into two), and produces a
 report that can be re-run and verified.
 
+The tool proposes the candidate regions itself, from the plan geometry and with
+no model, and SAM only outlines each one, so a live run is segmentation of a
+proposed region, not room discovery.
+
 It is an integration layer. The PicCompare engine remains a separate,
 separately licensed dependency. This repository does not contain engine source
 code, customer documents or secrets.
