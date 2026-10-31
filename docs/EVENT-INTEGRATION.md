@@ -22,6 +22,15 @@ the same way. The Python environment name comes from `active-pair.json`. The
 engine is called through `<tree>/src/agent_cli.py`; this repository never imports
 engine modules.
 
+## The same tools over MCP
+
+An assistant can call the operations on this page without a terminal: the
+repository also publishes them as Model Context Protocol (MCP) tools over
+standard input and output. The six engine tools use the resolution order above
+unchanged, and refuse with a typed error when no build resolves. Setup for
+Claude Desktop and Qoder, the tool table and the safety model are in
+[MCP.md](MCP.md).
+
 ## Read-only engine smoke test
 
 A "smoke test" is a quick check that the integration works. `scripts/engine_smoke.py`

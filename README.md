@@ -85,6 +85,14 @@ Run the project's checks:
 annotations, and the boundary check confirms that no engine source code or
 secret entered this public repository.
 
+### Call the tools from an assistant
+
+The same operations are published as Model Context Protocol (MCP) tools, so an
+assistant can call `aec.measure` itself instead of running a terminal command.
+Start the server with `python -m aec.mcp_server`; client configuration for
+Claude Desktop and Qoder, the tool table and the safety model are in
+[docs/MCP.md](docs/MCP.md).
+
 ## How it works
 
 ```text

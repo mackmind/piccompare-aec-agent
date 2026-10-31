@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from aec import tool_registry
 from aec.evidence import sha256_file, verify
 from aec.models import Report
 from aec.report import render_markdown
@@ -99,6 +100,20 @@ def test_committed_live_report_verifies_and_names_the_live_provider() -> None:
     assert report.usage["sam_calls"] > 0
     assert report.usage["sam_model"] and report.usage["meta_model"]
     assert verify(path, inputs_dir=ROOT / "fixtures" / "aec" / "resize-01").ok
+
+
+def test_mcp_doc_is_linked_and_covers_every_published_tool() -> None:
+    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+    events = (ROOT / "docs" / "EVENT-INTEGRATION.md").read_text(encoding="utf-8")
+    doc = (ROOT / "docs" / "MCP.md").read_text(encoding="utf-8")
+    assert "docs/MCP.md" in readme
+    assert "MCP.md" in events
+    # The snippets must name the command that actually starts the server.
+    assert '"command": "python"' in doc
+    assert '"args": ["-m", "aec.mcp_server"]' in doc
+    # A published tool with no row in the table is the drift this catches.
+    for tool in tool_registry.TOOLS:
+        assert f"`{tool.name}`" in doc, tool.name
 
 
 def _flat_doc(name: str) -> str:
