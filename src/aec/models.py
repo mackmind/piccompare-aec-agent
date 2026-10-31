@@ -10,7 +10,7 @@ import json
 from pathlib import Path
 from typing import Any, Literal, TypeVar
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 DEMO_NOTICE = "HACKATHON DEMO \u2014 NOT AN EVIDENCE RECORD"
 REPORT_SCHEMA = "piccompare-aec-report/1.0"
@@ -111,6 +111,36 @@ class Finding(StrictModel):
     reasons: list[str]
 
 
+class EvidenceCard(StrictModel):
+    """One raster crop of the plan around a measured element.
+
+    ``path`` is relative to the report directory and always uses forward
+    slashes, so a report stays portable. ``box_px`` is the Pillow crop box
+    ``[left, upper, right, lower]`` clamped to the page raster.
+    """
+
+    finding_id: str
+    side: Literal["a", "b"]
+    path: str
+    sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    bytes: int = Field(ge=0)
+    box_px: list[int] = Field(min_length=4, max_length=4)
+    page: int = Field(ge=0)
+    source: Literal["plan_raster"]
+
+    @field_validator("path")
+    @classmethod
+    def _relative_posix(cls, value: str) -> str:
+        if (
+            not value
+            or "\\" in value
+            or value.startswith("/")
+            or (len(value) > 1 and value[1] == ":")
+        ):
+            raise ValueError("path must be relative with forward slashes")
+        return value
+
+
 class Report(StrictModel):
     schema_version: Literal["piccompare-aec-report/1.0"]
     demo_notice: str
@@ -130,6 +160,7 @@ class Report(StrictModel):
     evidence: dict[str, Any]
     usage: dict[str, Any]
     limitations: list[str]
+    evidence_cards: list[EvidenceCard] = Field(default_factory=list)
     digest: str
 
 
