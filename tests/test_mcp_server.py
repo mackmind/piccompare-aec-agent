@@ -303,6 +303,24 @@ def test_tools_call_eval_runs_offline_and_scores_the_fixture(
     assert (out / "metrics.json").is_file()
 
 
+def test_tools_call_eval_without_live_defaults_to_the_offline_mode(
+    ready: Server, tmp_path: Path
+) -> None:
+    # The docs say the default is offline, so a client that omits ``live`` must
+    # be accepted and make no model call.
+    out = tmp_path / "eval-default"
+    response = ready.call(
+        "aec.eval",
+        {"fixtures": "fixtures", "out": str(out), "pairs": ["resize-01"]},
+    )
+    result = response["result"]
+    assert result["isError"] is False, result
+    metrics = json.loads(result["content"][0]["text"])
+    assert metrics["mode"] == "offline_deterministic"
+    assert metrics["totals"]["pairs"] == 1
+    assert (out / "metrics.json").is_file()
+
+
 def test_an_unknown_tool_is_an_invalid_params_error(ready: Server) -> None:
     response = ready.call("aec.nope", {})
     assert response["error"]["code"] == -32602
@@ -446,6 +464,9 @@ def test_local_adapters_map_published_names_onto_the_signatures() -> None:
     assert handler.calls[-1] == (("rs", "o"), {})
     adapters["aec.eval"](handler, {"fixtures": "fx", "out": "o", "live": True})
     assert handler.calls[-1] == (("fx", "o", None), {"live": True})
+    # Omitted: the documented offline default, not a KeyError.
+    adapters["aec.eval"](handler, {"fixtures": "fx", "out": "o"})
+    assert handler.calls[-1] == (("fx", "o", None), {"live": False})
     adapters["aec.eval"](
         handler, {"fixtures": "fx", "out": "o", "pairs": ["p"], "live": False}
     )

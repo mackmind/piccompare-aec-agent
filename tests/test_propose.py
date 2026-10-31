@@ -7,30 +7,54 @@ from pathlib import Path
 
 import cv2
 import numpy as np
+import pytest
 
 from aec.live import segment_proposed_regions
 from aec.propose import _iou, propose_boxes
 from aec.sam import SamError, SamResult
 
 FIXTURE = Path(__file__).resolve().parent.parent / "fixtures" / "aec" / "resize-01"
+FIXTURES = FIXTURE.parent
+PAIRS = sorted(path for path in FIXTURES.iterdir() if path.is_dir())
 PAGE_AREA = 1600 * 1200
 
 
-def _gt_boxes(side: str = "a") -> list[tuple[int, int, int, int]]:
-    payload = json.loads((FIXTURE / "sam31.json").read_text(encoding="utf-8"))
-    objects = payload["sides"][side]["pages"][0]["objects"]
-    return [tuple(int(value) for value in obj["bbox"]) for obj in objects]
+def _room_boxes(pair: Path, side: str) -> list[tuple[float, float, float, float]]:
+    """The ground-truth room bounding boxes for one side of one pair."""
+    truth = json.loads((pair / "ground_truth.json").read_text(encoding="utf-8"))
+    boxes = []
+    for room in truth[f"rooms_{side}"]:
+        xs = [float(point[0]) for point in room["polygon_px"]]
+        ys = [float(point[1]) for point in room["polygon_px"]]
+        boxes.append((min(xs), min(ys), max(xs), max(ys)))
+    return boxes
 
 
-def test_proposals_recover_every_room():
-    boxes = propose_boxes((FIXTURE / "a.png").read_bytes())
-    expected = _gt_boxes()
-    assert expected
-    for room in expected:
-        assert any(_iou(box, room) >= 0.5 for box in boxes), (room, boxes)
-    # No page-sized region: the border and its margin are not rooms.
-    assert all((box[2] - box[0]) * (box[3] - box[1]) < 0.4 * PAGE_AREA
-               for box in boxes)
+def test_the_proposal_sweep_covers_all_twelve_pairs_and_96_rooms() -> None:
+    # The published range is a claim over every fixture pair and both sides;
+    # this pins the population the parametrised test below sweeps.
+    assert len(PAIRS) == 12
+    rooms = sum(
+        len(_room_boxes(pair, side)) for pair in PAIRS for side in ("a", "b")
+    )
+    assert rooms == 96
+
+
+@pytest.mark.parametrize("pair", PAIRS, ids=[path.name for path in PAIRS])
+def test_proposals_recover_every_room(pair: Path) -> None:
+    for side in ("a", "b"):
+        boxes = propose_boxes((pair / f"{side}.png").read_bytes())
+        expected = _room_boxes(pair, side)
+        assert expected, (pair.name, side)
+        for room in expected:
+            assert any(_iou(box, room) >= 0.5 for box in boxes), (
+                pair.name, side, room, boxes
+            )
+        # No page-sized region: the border and its margin are not rooms.
+        assert all(
+            (box[2] - box[0]) * (box[3] - box[1]) < 0.4 * PAGE_AREA
+            for box in boxes
+        ), (pair.name, side)
 
 
 def test_proposals_are_deduplicated():

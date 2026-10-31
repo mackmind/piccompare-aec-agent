@@ -232,7 +232,7 @@ TOOLS: list[Tool] = [
             "fixtures": "string",
             "out": "string",
             "pairs": "string[]|null",
-            "live": "boolean",
+            "live": "boolean|null",
         },
         example="python scripts/run_eval.py --fixtures fixtures --out runs/eval",
         read_only=False,

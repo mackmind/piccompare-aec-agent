@@ -25,8 +25,8 @@ split in two, or two rooms merged).
   `docs/MCP.md`). The commands below are the fallback when no server is
   available.
 - A test-example folder containing `a.png`, `b.png`, `config.json`,
-  `ground_truth.json` (the known correct answer) and `sam31.json` (recorded
-  Segment Anything Model output).
+  `ground_truth.json` (the known correct answer) and `sam31.json` (a SAM-shaped
+  record generated from the plan spec, not model output).
 - For live SAM/Muse runs: `META_API_KEY`, the exact model IDs and network access.
   The current public default workflow is deterministic (the same input always
   gives the same output) and offline.

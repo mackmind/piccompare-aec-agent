@@ -46,8 +46,10 @@ can run).
 | Tool registry | `src/aec/tool_registry.py` | the one list of published tools, each with its input schema and handler; `mcp/manifest.json` is generated from it and a test compares the two |
 | MCP server | `src/aec/mcp_server.py` | JSON-RPC 2.0 on standard input and output, one frame per line and nothing else on standard output; sends each `tools/call` to its handler from the registry |
 
-A **fixture** is a prepared test example. `sam31.json` holds recorded model output
-so the offline run is deterministic (the same input always gives the same result).
+A **fixture** is a prepared test example. `sam31.json` is a SAM-shaped record
+generated from the plan spec, not model output: it carries the ground-truth room
+outlines for both sides with a fixed score, so the offline run is deterministic
+(the same input always gives the same result).
 
 The assistant path calls the same functions: `aec.mcp_server` reads one JSON-RPC
 2.0 frame per line and sends each `tools/call` to the handler named in
@@ -86,14 +88,14 @@ other rooms of that side.
 discovery. The proposer returns rectangles around free space; it does not read
 labels, furniture or text, and a title block or scale bar can be proposed like
 any other region. The rectangle only decides where SAM looks; the room outline
-is SAM's mask. On the two examples the tests check (`resize-01` side a and
-`split-01` side b), every ground-truth room must have a proposal at an IoU of
-at least 0.5 (`tests/test_propose.py`); that is a test floor on synthetic
-plans, not a real-world accuracy claim.
+is SAM's mask. `tests/test_propose.py` covers all 12 fixture pairs on both
+sides: every one of the 96 ground-truth rooms gets a proposed box at an IoU of
+at least 0.5, and the measured best-overlap range is 0.923 to 0.959. That is a
+test floor on synthetic plans, not a real-world accuracy claim.
 
-The **Data flow** below shows the offline run, which reads recorded model output
-(`sam31.json`) instead of calling the model. The live run puts proposal and
-segmentation in the place where the offline run reads that record.
+The **Data flow** below shows the offline run, which reads the generated
+SAM-shaped record (`sam31.json`) instead of calling the model. The live run puts
+proposal and segmentation in the place where the offline run reads that record.
 
 ## Data flow
 

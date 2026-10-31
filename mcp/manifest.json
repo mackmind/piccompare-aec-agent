@@ -47,7 +47,7 @@
       "description": "Run the test-example evaluation, offline (repeatable, no model call) or live (Meta's model service).",
       "transport": "cli",
       "status": "available",
-      "input_schema": {"fixtures": "string", "out": "string", "pairs": "string[]|null", "live": "boolean"},
+      "input_schema": {"fixtures": "string", "out": "string", "pairs": "string[]|null", "live": "boolean|null"},
       "example": "python scripts/run_eval.py --fixtures fixtures --out runs/eval"
     },
     {

@@ -84,7 +84,7 @@ refused before any work starts.
 | `aec.export` | `report`, `format` (`svg`, `dxf` or `both`), `out` | Write the measured rooms as an overlay under `out`. |
 | `aec.engine_info` | `workspace_root`, `engine_tree` (both optional) | Report which local PicCompare build resolves and whether its interpreter and command file exist. |
 | `aec.batch` | `reports`, `out` | Combine the per-pair reports under `reports` into `summary.json` and `summary.md` under `out`, sorted by materiality. |
-| `aec.eval` | `fixtures`, `out`, `pairs` (optional list), `live` | Run the fixture evaluation and write `metrics.json` under `out`. Send `live: false` for the offline default, which makes no model call. |
+| `aec.eval` | `fixtures`, `out`, `pairs` (optional list), `live` (optional, default `false`) | Run the fixture evaluation and write `metrics.json` under `out`. Omitting `live`, or sending `false`, is the offline default, which makes no model call. |
 | `piccompare.compare_documents` | `a`, `b`, `dpi`, `align` | External engine: compare two documents and return a comparison id. |
 | `piccompare.get_regions` | `comparison_id`, `kind`, `limit` | External engine: changed regions with page size and position. |
 | `piccompare.get_crop` | `comparison_id`, `region_id`, `view` | External engine: a cropped image of one changed region. |

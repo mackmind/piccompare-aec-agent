@@ -133,7 +133,7 @@ definition guard failed.
   (`aec.propose.propose_boxes`, `--boxes-from-plan`) and let SAM outline each box.
   On the fixtures, the proposer gives every ground-truth room in all 12 fixture
   pairs (96 rooms, both sides) a box at an overlap score (IoU) of 0.923 to 0.959
-  against the committed `sam31.json` boxes, above the 0.5 test floor. The
+  against the ground-truth room boxes, above the 0.5 test floor. The
   proposer is model-free, so that measures the boxes SAM is asked to outline,
   not a live-model score.
 - **One live pair** (`resize-01`, proposed regions): 1 verified finding (ROOM A

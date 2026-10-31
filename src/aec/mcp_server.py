@@ -215,12 +215,13 @@ def _batch(handler: Callable[..., Any], arguments: dict[str, Any]) -> Any:
 
 
 def _eval(handler: Callable[..., Any], arguments: dict[str, Any]) -> Any:
-    # run_eval(fixtures, out_dir, pairs, *, live).
+    # run_eval(fixtures, out_dir, pairs, *, live). The documented default is
+    # offline, so an omitted ``live`` means False rather than a schema refusal.
     return handler(
         arguments["fixtures"],
         arguments["out"],
         arguments.get("pairs"),
-        live=arguments["live"],
+        live=arguments.get("live", False),
     )
 
 

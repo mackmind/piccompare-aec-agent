@@ -220,6 +220,8 @@ def test_array_shorthand_becomes_a_typed_array() -> None:
     }
     assert "pairs" not in schema["required"]
     assert schema["properties"]["live"] == {"type": "boolean"}
+    # The documented default is offline, so a caller may omit ``live``.
+    assert "live" not in schema["required"]
 
 
 def test_unknown_shorthand_raises_instead_of_guessing() -> None:
