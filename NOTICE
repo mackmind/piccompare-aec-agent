@@ -4,10 +4,9 @@ integration repository.
 This repository is MIT-licensed (a permissive open-source licence). The MIT
 licence covers this repository only.
 
-The PicCompare engine, its internal design, its commercial components and any
-customer, employer or confidential document are NOT included and are NOT
-licensed under this repository's MIT licence. The engine is a separate
-proprietary product.
+The PicCompare engine and its internal design are NOT included in this
+repository and are NOT licensed under this repository's MIT licence. No
+customer, employer or confidential document is included.
 
 Third-party Python packages retain their own licences:
 - numpy: BSD-3-Clause

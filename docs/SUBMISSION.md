@@ -16,7 +16,7 @@ words used here, start with the [README](../README.md).
 - [x] Offline pipeline passes 12/12 pairs with 0 false positives (reported changes
       that are not real).
 - [x] Read-only engine smoke test passes on a local demo edition and a local
-      commercial build of PicCompare; each run record is tied to the exact code
+      0.55C build of PicCompare; each run record is tied to the exact code
       revision.
 - [x] Live SAM/Muse receipt (a run record): Meta's `sam-3.1` (Segment Anything
       Model for outlining objects) and `muse-spark-1.3-contributor` (language

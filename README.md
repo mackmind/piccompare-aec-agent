@@ -17,7 +17,7 @@ that carries out the review steps.
 This is the public, open-source part of an entry in the Meta Global AI Developer
 Hackathon (Indie Developer track, 2026-10-27 to 2026-11-04). The PicCompare
 comparison engine — the program that renders and compares the drawings — is a
-separate, separately licensed product and is not included here.
+separate program and is not included here.
 
 Repository: https://github.com/mackmind/piccompare-aec-agent
 
@@ -33,8 +33,8 @@ The tool proposes the candidate regions itself, from the plan geometry and with
 no model, and SAM only outlines each one, so a live run is segmentation of a
 proposed region, not room discovery.
 
-It is an integration layer. The PicCompare engine remains a separate,
-separately licensed dependency. This repository does not contain engine source
+It is an integration layer. The PicCompare engine remains a separate
+dependency. This repository does not contain engine source
 code, customer documents or secrets.
 
 ## Quick start
@@ -193,7 +193,7 @@ measurement is correct.
 ## Licence
 
 MIT licence (a permissive open-source licence) for this repository only. The
-PicCompare engine is a separate, separately licensed product and is not included.
+PicCompare engine is a separate program and is not included.
 See [LICENSE](LICENSE) and [NOTICE](NOTICE).
 
 ## What was built during the event
@@ -201,5 +201,5 @@ See [LICENSE](LICENSE) and [NOTICE](NOTICE).
 The measurement and verification workflow, the prepared test plans, the matching
 and refusal logic, the offline evaluation, the report and replay checks, and the
 drawing export were built during the event. The PicCompare engine is a
-pre-existing dependency and is not included. No internal plans or commercial
-components are published here.
+pre-existing dependency and is not included. No internal plans are published
+here.

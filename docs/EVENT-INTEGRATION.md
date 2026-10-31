@@ -37,7 +37,7 @@ A "smoke test" is a quick check that the integration works. `scripts/engine_smok
 calls `capabilities`, `compare` and `regions` through the documented command-line
 interface and writes a receipt (a run record) tied to the exact code revision and
 to whether the folder had uncommitted changes. It passed against the demo edition
-and the commercial build (`compare` complete, pages 1/1, 12 regions).
+and the 0.55C build (`compare` complete, pages 1/1, 12 regions).
 
 The engine allows image work against free memory minus a safety margin of
 `max(512 MiB, total/4)`. On a loaded machine the allowance reaches zero and the

@@ -124,5 +124,4 @@ verify_report / SVG / DXF / batch summary
   UTF-8, the standard text encoding for most languages.
 - The report is fingerprinted (hashed) and replayable, never "signed".
 - The engine is external; no engine imports.
-- The public repository contains no customer documents, secrets, plans or
-  commercial components.
+- The public repository contains no customer documents, secrets or plans.
