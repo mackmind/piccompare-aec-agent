@@ -133,9 +133,11 @@ re-run the check. The report is **hashed and replayable, not signed**. When two
 rooms cannot be compared because their definitions differ, they are listed under
 `not_compared` and are never shown as a verified change.
 
-With `aec measure --cards`, each verified finding also gets a small PNG crop of
-the plan around its measured box; the report lists each file's path, SHA-256 and
-size. The crop shows what was measured, not that the measurement is correct.
+With `aec measure --cards`, a report carries up to 12 PNG crops of the plan
+(one per side of at most six verified findings), each around its measured box;
+a card that cannot be cropped is recorded as skipped. The report lists each
+file's path, SHA-256 and size. A crop shows what was measured, not that the
+measurement is correct.
 
 ## Limitations
 

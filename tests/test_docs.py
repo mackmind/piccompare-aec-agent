@@ -24,6 +24,9 @@ def test_readme_has_required_sections_and_repo_link() -> None:
     # Pin the limits that must always be stated instead.
     assert "not signed" in text
     assert "no real-world accuracy claim" in text
+    # The card limit is 12 = 6 findings x 2 sides; "each verified finding"
+    # overstated it as soon as a pair had more than six findings or any skip.
+    assert "up to 12 PNG crops" in text
 
 
 def test_submission_checklist_has_no_placeholders() -> None:
