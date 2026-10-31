@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from aec.evidence import verify
+from aec.evidence import sha256_file, verify
 from aec.models import Report
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -57,6 +57,25 @@ def test_sample_report_is_valid_and_verifies() -> None:
     assert report.findings
     assert report.demo_notice == "HACKATHON DEMO \u2014 NOT AN EVIDENCE RECORD"
     assert verify(path, inputs_dir=ROOT / "fixtures" / "aec" / "resize-01").ok
+
+
+def test_committed_sample_report_carries_verifiable_cards() -> None:
+    path = ROOT / "demo" / "sample-report.json"
+    report = Report.model_validate_json(path.read_text(encoding="utf-8"))
+    assert len(report.evidence_cards) == 2
+    assert {card.side for card in report.evidence_cards} == {"a", "b"}
+    total = 0
+    for card in report.evidence_cards:
+        png = ROOT / "demo" / card.path
+        assert png.is_file()
+        assert card.sha256 == sha256_file(png)
+        assert card.bytes == png.stat().st_size
+        total += card.bytes
+    assert total < 200 * 1024
+    markdown = (ROOT / "demo" / "sample-report.md").read_text(encoding="utf-8")
+    assert "## Evidence cards" in markdown
+    for card in report.evidence_cards:
+        assert card.path in markdown
 
 
 def test_committed_live_report_verifies_and_names_the_live_provider() -> None:

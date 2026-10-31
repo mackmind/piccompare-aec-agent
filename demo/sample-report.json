@@ -1,7 +1,7 @@
 {
   "schema_version": "piccompare-aec-report/1.0",
   "demo_notice": "HACKATHON DEMO \u2014 NOT AN EVIDENCE RECORD",
-  "generated_at": "2026-10-27T00:42:30+00:00",
+  "generated_at": "2026-10-31T01:20:37+00:00",
   "engine": {
     "name": "fixture",
     "mode": "offline_deterministic"
@@ -624,7 +624,10 @@
       "provider": "offline_deterministic",
       "network": false,
       "meta_api_calls": 0
-    }
+    },
+    "cards_truncated": false,
+    "cards_dropped": 0,
+    "cards_skipped": []
   },
   "usage": {
     "provider": "offline_deterministic",
@@ -636,7 +639,40 @@
   },
   "limitations": [
     "Synthetic plans only; no real-world accuracy claim.",
-    "Deterministic offline critic; no live Meta call in this run."
+    "Deterministic offline critic; no live Meta call in this run.",
+    "Evidence cards are raster crops of the plan at the measured element's box; they show what was measured, not that the measurement is correct."
   ],
-  "digest": "8972225a84b3854d7f9f55b6bbb3b20828b95f0107963edc780323a908fe1eb9"
+  "evidence_cards": [
+    {
+      "finding_id": "room_resized:resize-01:a:0:room:0",
+      "side": "a",
+      "path": "cards/room_resized_resize-01_a_0_room_0-a.png",
+      "sha256": "8e2880c471b4b3aecb0df3bf0c5a380529d4c2eb7f0e84832dba629db1a13dbe",
+      "bytes": 2192,
+      "box_px": [
+        92,
+        92,
+        508,
+        508
+      ],
+      "page": 0,
+      "source": "plan_raster"
+    },
+    {
+      "finding_id": "room_resized:resize-01:a:0:room:0",
+      "side": "b",
+      "path": "cards/room_resized_resize-01_a_0_room_0-b.png",
+      "sha256": "9760d48373e7ed327d476246121b5c0ccfc2cb3e0994ed32a8dc8b0ec4b9e512",
+      "bytes": 2233,
+      "box_px": [
+        92,
+        92,
+        558,
+        508
+      ],
+      "page": 0,
+      "source": "plan_raster"
+    }
+  ],
+  "digest": "6b47760e97b04cc2d1dfba009b75219a71a444dffc9dcebe7d5f7a3404eba1c9"
 }
