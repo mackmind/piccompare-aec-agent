@@ -3,13 +3,15 @@
 One server per test, on an ephemeral loopback port, stopped in a ``finally``
 block so a failing assertion cannot leave a listening socket behind. The
 workspace is always ``tmp_path``: no test writes into the repository's
-``runs/`` directory.
+``runs/`` directory. The fixture pairs are copied under ``tmp_path`` too, so a
+test measures from the folder it was given rather than from the checkout.
 """
 
 from __future__ import annotations
 
 import http.client
 import re
+import shutil
 import threading
 from collections.abc import Iterator
 from contextlib import contextmanager
@@ -30,8 +32,18 @@ FORM_TYPE = "application/x-www-form-urlencoded"
 
 
 @contextmanager
-def running_app(tmp_path: Path, fixtures: Path = FIXTURES) -> Iterator[WebServer]:
-    """A server on an ephemeral loopback port, stopped even when a test fails."""
+def running_app(
+    tmp_path: Path, fixtures: Path | None = None
+) -> Iterator[WebServer]:
+    """A server on an ephemeral loopback port, stopped even when a test fails.
+
+    Without an explicit ``fixtures`` tree the repository's pairs are copied
+    under ``tmp_path`` first, so the server is pointed at a folder this test
+    owns and a measurement never reads from the checkout it is testing.
+    """
+    if fixtures is None:
+        fixtures = tmp_path / "fixtures"
+        shutil.copytree(FIXTURES, fixtures)
     server = cast(
         WebServer,
         build_app(workspace=tmp_path / "workspace", fixtures=fixtures),

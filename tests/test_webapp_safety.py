@@ -131,6 +131,51 @@ def test_a_card_symlink_outside_the_run_is_not_served(tmp_path: Path) -> None:
     assert b"SECRET-MARKER" not in body
 
 
+def test_a_cards_directory_symlinked_outside_the_run_is_not_served(
+    tmp_path: Path,
+) -> None:
+    """The folder itself is resolved, not just the file inside it.
+
+    The real cards folder is moved out of the run and a link to it is put in
+    its place, so every name and every byte a card route would check still
+    matches the report. Only the folder's resolved parent tells them apart.
+    """
+    with running_app(tmp_path) as server, client(server) as connection:
+        run_id, _ = measure(connection, server.token)
+        run_dir = server.workspace / run_id
+        displaced = tmp_path / "displaced-cards"
+        (run_dir / "cards").rename(displaced)
+        try:
+            os.symlink(displaced, run_dir / "cards", target_is_directory=True)
+        except (OSError, NotImplementedError):
+            pytest.skip("this platform does not permit a test symlink")
+        report = json.loads((run_dir / "report.json").read_text(encoding="utf-8"))
+        name = report["evidence_cards"][0]["path"].rpartition("/")[2]
+        assert (displaced / name).is_file()
+        status, _, body = request(
+            connection, "GET", f"/run/{run_id}/card/{name}"
+        )
+    assert status == 404
+    assert _json_error(body) == "no such file"
+
+
+def test_a_report_symlinked_outside_the_run_is_not_served(tmp_path: Path) -> None:
+    with running_app(tmp_path) as server, client(server) as connection:
+        run_id, _ = measure(connection, server.token)
+        run_dir = server.workspace / run_id
+        elsewhere = tmp_path / "elsewhere"
+        elsewhere.mkdir()
+        (run_dir / "report.json").rename(elsewhere / "report.json")
+        try:
+            os.symlink(elsewhere / "report.json", run_dir / "report.json")
+        except (OSError, NotImplementedError):
+            pytest.skip("this platform does not permit a test symlink")
+        status, _, body = request(connection, "GET", f"/run/{run_id}")
+    assert status == 404
+    assert _json_error(body) == "no such run"
+    assert b"room_resized" not in body
+
+
 def test_a_body_above_the_cap_is_refused(tmp_path: Path) -> None:
     with running_app(tmp_path) as server, client(server) as connection:
         before = sorted(path.name for path in server.workspace.iterdir())
@@ -258,6 +303,46 @@ def test_an_unknown_route_is_404(tmp_path: Path) -> None:
             assert status == 404, path
             assert headers["Content-Type"] == "application/json"
             assert _json_error(body) == "not found"
+
+
+def test_a_request_for_another_host_name_is_refused(tmp_path: Path) -> None:
+    """A page on another origin cannot read this server by rebinding its name.
+
+    The request is addressed to the right port but names another host, which
+    is what a DNS-rebinding page would send. It is refused before dispatch, so
+    the token on ``/`` is never returned.
+    """
+    with running_app(tmp_path) as server, client(server) as connection:
+        port = int(server.server_address[1])
+        for host in (
+            "evil.example",
+            f"evil.example:{port}",
+            f"127.0.0.1:{port + 1}",
+            "127.0.0.1",
+        ):
+            connection.request(
+                "GET", f"/?token={server.token}", headers={"Host": host}
+            )
+            response = connection.getresponse()
+            status, headers, body = (
+                response.status,
+                response.headers,
+                response.read(),
+            )
+            assert status == 403, host
+            assert headers["Content-Type"] == "application/json"
+            assert _json_error(body) == "request host is not allowed"
+            assert server.token.encode("ascii") not in body
+
+
+def test_the_three_loopback_names_are_accepted(tmp_path: Path) -> None:
+    with running_app(tmp_path) as server, client(server) as connection:
+        port = int(server.server_address[1])
+        for host in (f"127.0.0.1:{port}", f"localhost:{port}", f"[::1]:{port}"):
+            connection.request("GET", "/healthz", headers={"Host": host})
+            response = connection.getresponse()
+            assert response.status == 200, host
+            assert json.loads(response.read()) == {"ok": True}
 
 
 def test_a_normal_response_carries_the_security_headers(tmp_path: Path) -> None:

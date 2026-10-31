@@ -14,9 +14,11 @@ The security shape, in one list:
 
 * the bind address is checked against a loopback allowlist before a socket is
   opened, and there is no switch that widens it;
+* a request must address the server by one of its own loopback names on the
+  bound port, so a page on another host name cannot reach it by DNS rebinding;
 * a run id is 32 lowercase hex digits, a file name matches ``[A-Za-z0-9._-]+``,
-  and every requested file must sit directly inside the directory it belongs
-  to, which also catches a symlink pointing outside it;
+  and every requested file, its folder and the run's report must resolve
+  directly inside the run, which also catches a symlink pointing outside it;
 * a card is served only while its bytes hash to the digest the report recorded,
   so a file edited after the run is refused;
 * every error leaves through one redacted JSON answer and the detail goes to
@@ -251,6 +253,7 @@ class _Handler(BaseHTTPRequestHandler):
             self._json(500, {"error": message}, close=True)
 
     def _dispatch(self, method: str) -> None:
+        self._require_host()
         path = urlsplit(self.path).path
         if _unsafe_path(path):
             raise _HttpError(400, "refused request path")
@@ -258,6 +261,21 @@ class _Handler(BaseHTTPRequestHandler):
             self._get(path)
         else:
             self._post(path)
+
+    def _require_host(self) -> None:
+        """Refuse a request that did not address this server by its own name.
+
+        A browser sends the name it used. A page on another origin that has
+        rebound its own name to this loopback address sends *that* name, and
+        could otherwise read the token off ``/`` and drive the POST actions
+        with it. Only the three loopback names on the port this socket is
+        bound to are accepted, so the rebinding page is refused before
+        dispatch.
+        """
+        port = cast(WebServer, self.server).server_port
+        allowed = {f"127.0.0.1:{port}", f"localhost:{port}", f"[::1]:{port}"}
+        if self.headers.get("Host", "").lower() not in allowed:
+            raise _HttpError(403, "request host is not allowed")
 
     def _get(self, path: str) -> None:
         if path == "/":
@@ -455,7 +473,7 @@ class _Handler(BaseHTTPRequestHandler):
         illustrates. A name the report does not record is refused the same way.
         """
         run_dir = self._run_directory(run_id)
-        path = _child_file(run_dir / "cards", name)
+        path = _child_file(run_dir, "cards", name)
         report = load_report(_report_file(run_dir))
         expected = next(
             (
@@ -474,7 +492,7 @@ class _Handler(BaseHTTPRequestHandler):
 
     def _export_file(self, run_id: str, name: str) -> None:
         run_dir = self._run_directory(run_id)
-        path = _child_file(run_dir / "export", name)
+        path = _child_file(run_dir, "export", name)
         media = (
             "image/svg+xml"
             if path.suffix.lower() == ".svg"
@@ -484,7 +502,11 @@ class _Handler(BaseHTTPRequestHandler):
 
     def _verify(self, run_id: str) -> None:
         run_dir = self._run_directory(run_id)
-        result = ops.verify(_report_file(run_dir))
+        report_path = _report_file(run_dir)
+        report = load_report(report_path)
+        result = ops.verify(
+            report_path, self._inputs_directory(report.plan.pair_id)
+        )
         self._page(
             200,
             _verify_page(
@@ -494,6 +516,26 @@ class _Handler(BaseHTTPRequestHandler):
                 reasons=[str(reason) for reason in result["reasons"]],
             ),
         )
+
+    def _inputs_directory(self, pair_id: str) -> Path:
+        """The fixtures folder this server was given, for one pair.
+
+        ``ops.verify`` defaults to the repository's own fixture tree, which
+        would report a sound run measured from any other tree as unverified.
+        The pair name is resolved and must stay directly inside the fixtures
+        root; a report naming anything else is checked against the root
+        itself, where its inputs are absent, so the check fails closed
+        instead of reading a folder the server was not given.
+        """
+        fixtures = self.state.fixtures
+        candidate = (fixtures / pair_id).resolve()
+        if (
+            SAFE_NAME.fullmatch(pair_id) is None
+            or pair_id in {".", ".."}
+            or candidate.parent != fixtures
+        ):
+            return fixtures
+        return candidate
 
     def _export(self, run_id: str) -> None:
         run_dir = self._run_directory(run_id)
@@ -601,27 +643,40 @@ def _text(value: object) -> str:
 
 
 def _report_file(run_dir: Path) -> Path:
-    path = run_dir / "report.json"
-    if not path.is_file():
+    """The run's report, refusing one that resolves outside the run.
+
+    ``run_dir`` is already resolved, so a ``report.json`` that is a symlink to
+    another location has a parent that is not this run and is refused. The app
+    wrote the report itself, so a link here means the folder was altered after
+    the run.
+    """
+    try:
+        path = (run_dir / "report.json").resolve(strict=True)
+    except OSError:
+        raise _HttpError(404, "no such run") from None
+    if path.parent != run_dir or not path.is_file():
         raise _HttpError(404, "no such run")
     return path
 
 
-def _child_file(directory: Path, name: str) -> Path:
-    """The one file ``name`` inside ``directory``; anything else is a 404.
+def _child_file(run_dir: Path, folder: str, name: str) -> Path:
+    """The one file ``name`` inside ``run_dir/folder``; anything else is a 404.
 
     The name is checked before the filesystem is touched, so no request can
     name a path: no separator, no drive letter and no ``.`` or ``..``. The
-    directory and the candidate are then resolved, and the resolved candidate
-    must keep the resolved directory as its direct parent, which is what stops
-    a symlink inside the directory from reaching outside it.
+    folder and the candidate are then resolved, and each must keep its own
+    resolved parent - the run directory for the folder, the folder for the
+    file - which is what stops a symlinked ``cards`` or ``export`` folder, or a
+    symlink inside one, from reaching outside the run.
     """
     if not SAFE_NAME.fullmatch(name) or name in {".", ".."}:
         raise _HttpError(404, "no such file")
     try:
-        base = directory.resolve(strict=True)
+        base = (run_dir / folder).resolve(strict=True)
     except OSError:
         raise _HttpError(404, "no such file") from None
+    if base.parent != run_dir or not base.is_dir():
+        raise _HttpError(404, "no such file")
     candidate = (base / name).resolve()
     if candidate.parent != base or not candidate.is_file():
         raise _HttpError(404, "no such file")

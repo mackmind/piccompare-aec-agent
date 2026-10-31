@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import shutil
 import socket
 import socketserver
 from pathlib import Path
@@ -27,6 +28,18 @@ def test_build_app_binds_loopback_on_an_ephemeral_port(tmp_path: Path) -> None:
         assert isinstance(port, int) and port > 0
         assert server.daemon_threads is True
         assert len(server.token) >= 32
+
+
+def test_the_harness_measures_from_a_copy_of_the_fixtures(tmp_path: Path) -> None:
+    """The default tree is a copy under tmp_path, not the checkout.
+
+    This is what makes the folder the server is given the folder the run is
+    measured from, so the ``--fixtures`` path is exercised by every test here.
+    """
+    with running_app(tmp_path) as server:
+        assert server.fixtures == tmp_path / "fixtures"
+        assert server.fixtures != FIXTURES
+        assert (server.fixtures / "resize-01" / "config.json").is_file()
 
 
 @pytest.mark.parametrize(
@@ -173,6 +186,33 @@ def test_every_route_answers(tmp_path: Path) -> None:
         assert status == 200
         assert headers["Content-Type"] == "image/svg+xml"
         assert b"<svg" in body
+
+
+def test_verify_uses_the_fixtures_folder_the_server_was_given(
+    tmp_path: Path,
+) -> None:
+    """A sound run measured from another fixtures tree still verifies.
+
+    The copy's pair id is renamed so it exists nowhere but this tree, which is
+    the case a verify that fell back to the repository's own fixtures could
+    not answer for: it would report a sound report as unverifiable.
+    """
+    fixtures = tmp_path / "other-fixtures"
+    shutil.copytree(FIXTURES / "resize-01", fixtures / "resize-01-copy")
+    config_path = fixtures / "resize-01-copy" / "config.json"
+    config = json.loads(config_path.read_text(encoding="utf-8"))
+    config["pair_id"] = "resize-01-copy"
+    config_path.write_text(json.dumps(config), encoding="utf-8")
+    with running_app(tmp_path, fixtures=fixtures) as server, client(
+        server
+    ) as connection:
+        run_id, _ = measure(connection, server.token, pair="resize-01-copy")
+        status, headers, body = request(
+            connection, "POST", f"/run/{run_id}/verify", {"token": server.token}
+        )
+    assert status == 200
+    assert headers["Content-Type"] == "text/html; charset=utf-8"
+    assert "Report verifies" in body.decode("utf-8")
 
 
 def test_the_whole_flow_from_the_picker_to_the_svg(tmp_path: Path) -> None:
