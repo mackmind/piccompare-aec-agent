@@ -29,7 +29,7 @@ Each pair contains:
 - `config.json` — the `PlanSpec` settings record and the variant name.
 - `ground_truth.json` — room outlines, exact areas, centre points and expected
   changes/findings. This is the known correct answer.
-- `sam31.json` — a SAM-shaped record generated from the plan spec, not model
+- `sam31.json`: a SAM-shaped record generated from the plan spec, not model
   output: one object per ground-truth room in the shape of a Meta Segment
   Anything Model (SAM) 3.1 response, for both sides. `scripts/make_plans.py`
   writes it with a fixed score, so the offline adapter tests are deterministic.
