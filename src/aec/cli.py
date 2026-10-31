@@ -1,73 +1,61 @@
-"""AEC command-line interface."""
+"""AEC command-line interface.
+
+The handlers here print and set the exit code; the work, and every value they
+print, comes from :mod:`aec.ops` so a terminal and an assistant share one path.
+"""
 
 from __future__ import annotations
 
 import argparse
-from pathlib import Path
 
-from aec import __version__
-from aec.engine import EngineNotFound, resolve_engine
-from aec.evidence import verify
-from aec.export import export_dxf, export_svg
-from aec.models import Report
-from aec.pipeline import run_pair
+from aec import __version__, ops
+from aec.engine import EngineNotFound
 
 
 def _measure(args: argparse.Namespace) -> int:
-    out = Path(args.out) if args.out else None
-    if args.cards and out is None:
-        print("FAIL --cards needs --out: cards are written under the report directory")
+    try:
+        result = ops.measure(args.fixture, args.out, cards=args.cards)
+    except ops.OpsError as error:
+        print(f"FAIL {error}")
         return 2
-    result = run_pair(Path(args.fixture), out, cards=args.cards)
     print(
-        f"pair={result.pair_id} verified={len(result.verified)} "
-        f"not_compared={len(result.not_compared)} rejected={len(result.rejected)}"
+        f"pair={result['pair_id']} verified={result['verified']} "
+        f"not_compared={result['not_compared']} rejected={result['rejected']}"
     )
-    if result.report_path:
-        print(f"report={result.report_path}")
+    if result["report"]:
+        print(f"report={result['report']}")
     if args.cards:
-        print(f"cards={len(result.report.evidence_cards)}")
+        print(f"cards={result['cards']}")
     return 0
 
 
 def _verify(args: argparse.Namespace) -> int:
-    result = verify(
-        Path(args.report), Path(args.inputs_dir) if args.inputs_dir else None
-    )
-    if result.ok:
+    result = ops.verify(args.report, args.inputs_dir)
+    if result["ok"]:
         print("PASS report verifies")
         return 0
-    for reason in result.reasons:
+    for reason in result["reasons"]:
         print(f"FAIL {reason}")
     return 1
 
 
 def _export(args: argparse.Namespace) -> int:
-    report = Report.model_validate_json(
-        Path(args.report).read_text(encoding="utf-8")
-    )
-    out = Path(args.out)
-    out.mkdir(parents=True, exist_ok=True)
-    stem = report.plan.pair_id
-    if args.format in {"svg", "both"}:
-        export_svg(report, out / f"{stem}.svg")
-    if args.format in {"dxf", "both"}:
-        export_dxf(report, out / f"{stem}.dxf")
-    print(f"exported {stem} to {out}")
+    result = ops.export(args.report, format=args.format, out=args.out)
+    print(f"exported {result['pair_id']} to {result['out']}")
     return 0
 
 
 def _engine_info(args: argparse.Namespace) -> int:
     try:
-        ref = resolve_engine(args.workspace_root, args.engine_tree)
+        result = ops.engine_info(args.workspace_root, args.engine_tree)
     except EngineNotFound as error:
         print(f"ENGINE NOT FOUND: {error}")
         return 1
-    print(f"tree={ref.tree}")
-    print(f"version={ref.version}")
-    print(f"source={ref.source}")
-    print(f"python={ref.python} exists={ref.python_exists}")
-    print(f"cli={ref.cli} exists={ref.cli_exists}")
+    print(f"tree={result['tree']}")
+    print(f"version={result['version']}")
+    print(f"source={result['source']}")
+    print(f"python={result['python']} exists={result['python_exists']}")
+    print(f"cli={result['cli']} exists={result['cli_exists']}")
     return 0
 
 

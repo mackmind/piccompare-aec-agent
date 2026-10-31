@@ -7,10 +7,25 @@ from pathlib import Path
 
 from factories import report
 
-from aec.batch import triage
+from aec.batch import run_batch, triage
 from aec.report import write_report
 
 ROOT = Path(__file__).resolve().parent.parent
+
+
+def test_run_batch_writes_the_summary_and_the_markdown(tmp_path) -> None:
+    # The script leg below is a subprocess, which pytest-cov cannot measure;
+    # this is the in-process entry point the tool server calls.
+    for pair_id, high in (("a", 0), ("b", 2)):
+        write_report(report(pair_id, high=high), tmp_path / "reports" / pair_id)
+    payload = run_batch(tmp_path / "reports", tmp_path / "out")
+    assert payload["totals"]["pairs"] == 2
+    assert [pair["pair_id"] for pair in payload["pairs"]] == ["b", "a"]
+    summary = json.loads((tmp_path / "out" / "summary.json").read_text())
+    assert summary["totals"]["high"] == 2
+    markdown = (tmp_path / "out" / "summary.md").read_text(encoding="utf-8")
+    assert markdown.startswith("# AEC batch summary")
+    assert "| b | 2 | 0 | 0 | 0 |" in markdown
 
 
 def test_batch_sorts_by_materiality() -> None:

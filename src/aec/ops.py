@@ -1,0 +1,136 @@
+"""Data-returning operations behind the AEC command line.
+
+Each function returns a JSON-safe mapping or raises; :mod:`aec.cli` keeps the
+printing and the exit codes, and the tool server calls the same functions. No
+subprocess, no shell. Moved out of the CLI handlers during W3-2 so the same
+code serves a terminal and an assistant.
+"""
+
+from __future__ import annotations
+
+from pathlib import Path
+from typing import Any
+
+from aec.engine import resolve_engine
+from aec.evidence import verify as verify_report
+from aec.export import export_dxf, export_svg
+from aec.models import Report
+from aec.pipeline import run_pair
+
+REPO_ROOT = Path(__file__).resolve().parents[2]
+EXPORT_FORMATS = ("svg", "dxf", "both")
+
+
+class OpsError(ValueError):
+    """A request the operation refuses; the message is safe to show a caller."""
+
+
+def _fixture_directory(report_path: Path) -> Path | None:
+    """The fixture directory named by the report itself, when it still exists.
+
+    Returns ``None`` rather than guessing: verification then fails closed with
+    "no inputs directory" instead of certifying inputs it never read.
+    """
+    try:
+        report = Report.model_validate_json(report_path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+    candidate = REPO_ROOT / "fixtures" / "aec" / report.plan.pair_id
+    return candidate if candidate.is_dir() else None
+
+
+def measure(
+    fixture: str | Path,
+    out: str | Path | None = None,
+    *,
+    cards: bool = False,
+) -> dict[str, Any]:
+    """Measure one fixture pair, optionally writing a report and evidence cards."""
+    out_dir = Path(out) if out is not None else None
+    if cards and out_dir is None:
+        raise OpsError(
+            "--cards needs --out: cards are written under the report directory"
+        )
+    result = run_pair(Path(fixture), out_dir, cards=cards)
+    return {
+        "pair_id": result.pair_id,
+        "verified": len(result.verified),
+        "not_compared": len(result.not_compared),
+        "rejected": len(result.rejected),
+        "report": str(result.report_path) if result.report_path else None,
+        # Unknown when cards were not requested, as opposed to requested and
+        # all skipped, which is 0.
+        "cards": len(result.report.evidence_cards) if cards else None,
+    }
+
+
+def verify(
+    report: str | Path,
+    inputs_dir: str | Path | None = None,
+) -> dict[str, Any]:
+    """Re-check a report from its stored fingerprints.
+
+    ``inputs_dir`` defaults to the fixture directory the report names for
+    itself (``fixtures/aec/<pair_id>``), so a caller that measured a fixture
+    can verify the report without being told where the inputs live. When that
+    directory is absent the check still fails closed: every recorded input
+    fingerprint is then reported as unverifiable.
+    """
+    report_path = Path(report)
+    directory = (
+        Path(inputs_dir) if inputs_dir is not None else _fixture_directory(report_path)
+    )
+    result = verify_report(report_path, directory)
+    return {"ok": result.ok, "reasons": list(result.reasons)}
+
+
+def export(
+    report: str | Path,
+    *,
+    format: str = "both",
+    out: str | Path = "runs/export",
+) -> dict[str, Any]:
+    """Write the measured rooms of a report as an SVG and/or DXF overlay."""
+    if format not in EXPORT_FORMATS:
+        raise OpsError(
+            f"unknown export format {format!r}; expected one of "
+            + ", ".join(EXPORT_FORMATS)
+        )
+    model = Report.model_validate_json(Path(report).read_text(encoding="utf-8"))
+    out_dir = Path(out)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    stem = model.plan.pair_id
+    files: list[str] = []
+    if format in {"svg", "both"}:
+        path = out_dir / f"{stem}.svg"
+        export_svg(model, path)
+        files.append(str(path))
+    if format in {"dxf", "both"}:
+        path = out_dir / f"{stem}.dxf"
+        export_dxf(model, path)
+        files.append(str(path))
+    return {
+        "pair_id": stem,
+        "format": format,
+        "out": str(out_dir),
+        "files": files,
+    }
+
+
+def engine_info(
+    workspace_root: str | Path | None = None,
+    engine_tree: str | Path | None = None,
+) -> dict[str, Any]:
+    """Find a local PicCompare build; raise ``EngineNotFound`` when none resolves."""
+    ref = resolve_engine(workspace_root, engine_tree)
+    return {
+        "tree": str(ref.tree),
+        "version": ref.version,
+        "source": ref.source,
+        "python": str(ref.python),
+        "python_exists": ref.python_exists,
+        "cli": str(ref.cli),
+        "cli_exists": ref.cli_exists,
+        "demo_mode": ref.demo_mode,
+        "warnings": list(ref.warnings),
+    }
