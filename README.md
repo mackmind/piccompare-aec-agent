@@ -201,8 +201,7 @@ MIT licence (a permissive open-source licence) for this repository only. The
 PicCompare engine is a separate program and is not included.
 See [LICENSE](LICENSE) and [NOTICE](NOTICE).
 
-The local web page is part of this MIT repository; the comparison engine is not
-included.
+The local web page is covered by the same licence.
 
 ## What was built during the event
 
