@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import shutil
 from pathlib import Path
 
 from aec.cli import main
@@ -119,6 +120,26 @@ def test_view_names_a_missing_card_by_its_relative_path(
     assert "cards/" in printed
     assert str(tmp_path) not in printed
     assert not out.exists()
+
+
+def test_view_refuses_a_card_whose_bytes_no_longer_match(
+    tmp_path: Path, capsys
+) -> None:
+    # A card edited after the run: the page would print the recorded hash above
+    # bytes that no longer hash to it, so the render is refused instead.
+    report = _copy_sample(tmp_path / "report.json")
+    shutil.copytree(ROOT / "demo" / "cards", tmp_path / "cards")
+    data = json.loads(report.read_text(encoding="utf-8"))
+    card_path = data["evidence_cards"][0]["path"]
+    image = tmp_path / card_path
+    image.write_bytes(image.read_bytes() + b"tampered")
+    out = tmp_path / "page.html"
+    assert main(["view", "--report", str(report), "--out", str(out)]) == 2
+    assert not out.exists()
+    printed = capsys.readouterr().out
+    assert "FAIL" in printed
+    assert card_path in printed
+    assert str(tmp_path) not in printed
 
 
 def test_view_refuses_to_replace_its_own_report(tmp_path: Path, capsys) -> None:

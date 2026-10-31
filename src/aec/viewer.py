@@ -18,6 +18,7 @@ renderers cannot drift into quoting each other.
 from __future__ import annotations
 
 import base64
+import hashlib
 import html
 import json
 from collections.abc import Sequence
@@ -336,6 +337,11 @@ def _data_uri(card: EvidenceCard, cards_dir: Path | None) -> str:
         # Only the report's relative path goes in the message: the absolute
         # location is exactly what this module must never emit.
         raise ViewerError(f"cannot read card image: {card.path}") from error
+    # The page prints the recorded digest beside this image, so bytes that no
+    # longer hash to it would be shown under a claim they do not illustrate -
+    # the same refusal the web app's card route already makes.
+    if hashlib.sha256(data).hexdigest() != card.sha256:
+        raise ViewerError(f"card image does not match its hash: {card.path}")
     return "data:image/png;base64," + base64.b64encode(data).decode("ascii")
 
 

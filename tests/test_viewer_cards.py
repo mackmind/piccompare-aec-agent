@@ -5,6 +5,7 @@ from __future__ import annotations
 import base64
 import hashlib
 import re
+import shutil
 from pathlib import Path
 
 import pytest
@@ -141,3 +142,25 @@ def test_a_missing_card_names_only_its_relative_path(
     message = str(error.value)
     assert report.evidence_cards[0].path in message
     assert str(tmp_path) not in message
+
+
+def test_an_embedded_card_whose_bytes_no_longer_match_is_refused(
+    card_report: tuple[Report, Path], tmp_path: Path
+) -> None:
+    """The table prints the recorded hash, so altered bytes must not be inlined.
+
+    The web app's card route already refuses a file edited after the run; this
+    keeps the standalone page saying the same thing rather than showing the
+    altered image beside the old hash.
+    """
+    report, directory = card_report
+    copied = tmp_path / "copied"
+    shutil.copytree(directory, copied)
+    card = report.evidence_cards[0]
+    image = copied / card.path
+    image.write_bytes(image.read_bytes() + b"tampered")
+    with pytest.raises(ViewerError) as error:
+        render_report_html(report, embed_cards=True, cards_dir=copied)
+    message = str(error.value)
+    assert card.path in message
+    assert str(copied) not in message
