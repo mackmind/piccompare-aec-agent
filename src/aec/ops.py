@@ -8,6 +8,7 @@ code serves a terminal and an assistant.
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 from typing import Any
 
@@ -22,6 +23,10 @@ from aec.viewer import ViewerError, render_report_html
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 EXPORT_FORMATS = ("svg", "dxf", "both")
+# The export writes one file per format under the output folder, named after
+# the pair id, so that id has to be a plain file name: no separator, no drive
+# letter, no "." or "..".
+SAFE_PAIR_ID = re.compile(r"^[A-Za-z0-9._-]+$")
 
 
 class OpsError(ValueError):
@@ -160,16 +165,24 @@ def export(
     format: str = "both",
     out: str | Path = "runs/export",
 ) -> dict[str, Any]:
-    """Write the measured rooms of a report as an SVG and/or DXF overlay."""
+    """Write the measured rooms of a report as an SVG and/or DXF overlay.
+
+    The files are named after the report's pair id, which must be a plain file
+    name; anything else raises ``OpsError`` rather than writing outside ``out``.
+    """
     if format not in EXPORT_FORMATS:
         raise OpsError(
             f"unknown export format {format!r}; expected one of "
             + ", ".join(EXPORT_FORMATS)
         )
     model = Report.model_validate_json(Path(report).read_text(encoding="utf-8"))
+    stem = model.plan.pair_id
+    # Refused before anything is created, so a crafted report cannot name a
+    # file outside the export folder on the write.
+    if not SAFE_PAIR_ID.fullmatch(stem) or stem in {".", ".."}:
+        raise OpsError("unsafe pair id")
     out_dir = Path(out)
     out_dir.mkdir(parents=True, exist_ok=True)
-    stem = model.plan.pair_id
     files: list[str] = []
     if format in {"svg", "both"}:
         path = out_dir / f"{stem}.svg"

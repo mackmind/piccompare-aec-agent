@@ -133,6 +133,31 @@ def test_export_refuses_an_unknown_format(tmp_path: Path) -> None:
         export(json_path, format="pdf", out=tmp_path / "export")
 
 
+@pytest.mark.parametrize("pair_id", ["../evil", "..", ".", "a/b", "a\\b", "C:evil"])
+def test_export_refuses_a_pair_id_that_is_not_a_file_name(
+    tmp_path: Path, pair_id: str
+) -> None:
+    """The pair id becomes the written file name, so it cannot name a place.
+
+    Only a crafted report reaches this: the id is copied into the file name
+    with no constraint, and ``../evil`` wrote outside the export folder.
+    """
+    json_path, _ = write_report(sample_report(rooms=1), tmp_path / "report")
+    data = json.loads(json_path.read_text(encoding="utf-8"))
+    data["plan"]["pair_id"] = pair_id
+    json_path.write_text(json.dumps(data, ensure_ascii=True), encoding="ascii")
+    out = tmp_path / "export"
+    with pytest.raises(OpsError, match="unsafe pair id"):
+        export(json_path, out=out)
+    assert not out.exists()
+    written = sorted(
+        path.relative_to(tmp_path).as_posix()
+        for path in tmp_path.rglob("*")
+        if path.is_file()
+    )
+    assert written == ["report/report.json", "report/report.md"]
+
+
 def test_engine_info_returns_the_resolved_tree(tmp_path: Path) -> None:
     write_manifest(tmp_path, comm="PicCompare_TestC")
     make_engine_tree(tmp_path, "PicCompare_TestC")
