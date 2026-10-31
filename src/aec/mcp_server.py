@@ -35,7 +35,6 @@ import argparse
 import contextlib
 import json
 import os
-import re
 import sys
 import types
 from collections.abc import Callable
@@ -45,6 +44,7 @@ from typing import Any, TextIO
 from aec import __version__, tool_registry
 from aec.client import PicCompareClient
 from aec.engine import EngineNotFound, resolve_engine
+from aec.redact import redact
 
 SERVER_NAME = "piccompare-aec"
 PROTOCOL_VERSION = "2025-06-18"
@@ -70,12 +70,11 @@ NOTIFICATION_METHODS = frozenset(
     }
 )
 
-# A path may contain spaces (``C:\Program Files\...``), so a path token ends at
-# a quote or a newline, not at the first whitespace: stopping at a space would
-# redact the head and send the rest of the path to the client.
-_WINDOWS_PATH = re.compile(r"(?<![A-Za-z0-9_])[A-Za-z]:[\\/][^\"'\r\n]*")
-_UNC_PATH = re.compile(r"\\\\[^\"'\r\n]*")
-_POSIX_PATH = re.compile(r"(?<![A-Za-z0-9_:./])/(?:[^\"'/\r\n]+/)*[^\"'\r\n]*")
+# A path token may contain spaces (a Windows "Program Files" directory, for
+# one), so it ends at a quote or a newline, not at the first whitespace:
+# stopping at a space would redact the head and send the rest of the path to the
+# client. The patterns themselves live in :mod:`aec.redact`, shared by every
+# surface that shows an error message.
 # Only the key matters; the value is never printed anywhere by this repository.
 _SECRET_ENV = ("META_API_KEY",)
 
@@ -93,16 +92,11 @@ def safe_message(text: str) -> str:
 
     Handler errors quote whatever the failing library put in them, and that can
     be an absolute path. The client needs to know what failed, not where this
-    machine keeps its files.
+    machine keeps its files. The redaction itself is shared; the 2000-character
+    limit is this transport's own.
     """
-    cleaned = text
-    for pattern in (_WINDOWS_PATH, _UNC_PATH, _POSIX_PATH):
-        cleaned = pattern.sub("<path>", cleaned)
-    for name in _SECRET_ENV:
-        secret = os.environ.get(name, "")
-        if secret:
-            cleaned = cleaned.replace(secret, "<redacted>")
-    return cleaned[:2000]
+    secrets = [os.environ.get(name, "") for name in _SECRET_ENV]
+    return redact(text, secrets=secrets)[:2000]
 
 
 def _log(message: str) -> None:
