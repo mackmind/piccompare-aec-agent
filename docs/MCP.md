@@ -128,9 +128,9 @@ measured yourself, and the answer is recomputed from that report's fingerprints.
 - **Read-only tools:** `aec.verify`, `aec.engine_info`, `piccompare.get_regions`
   and `piccompare.align` only read and compute. The other eight write.
 - **Writes name their directory, or use the profile.** The local tools that
-  write files (`aec.measure`, `aec.export`, `aec.batch`, `aec.eval`) take an
-  explicit `out` and create their files under it; nothing is written to the
-  repository unless the caller names a folder inside it. The six
+  write files take an explicit `out` and create their files under it
+  (`aec.measure` writes nothing when `out` is omitted); nothing is written to
+  the repository unless the caller names a folder inside it. The six
   `piccompare.*` tools take no `out`: `piccompare.compare_documents` records
   its comparison state in the external engine's profile directory, and
   `piccompare.get_crop`, `piccompare.get_page_image` and
