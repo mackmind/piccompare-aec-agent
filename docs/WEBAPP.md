@@ -107,9 +107,10 @@ Stated plainly, this is what the page does and does not protect.
   that allows no script and no remote asset, `nosniff`, `no-referrer`,
   `no-store` and `DENY` framing. The pages load no JavaScript and no file from
   the network.
-- **Errors are short.** A failure leaves as one JSON answer, the detail goes to
-  your terminal, and absolute paths and the session token are removed from both
-  before you see them.
+- **Errors are short.** A failure leaves as one JSON answer with absolute paths
+  and the session token removed. The full detail, including a traceback when
+  something unexpected breaks, is written to your terminal for the operator to
+  read.
 
 The page is **not a hosted service**. It is one process on one machine for the
 length of a review. Do not expose it through a proxy, a tunnel or a public
