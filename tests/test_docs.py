@@ -42,8 +42,25 @@ def test_limitations_are_explicit() -> None:
     # Round 13: live evidence now exists, so the pinned phrase became false.
     # Keep the test on the limits that must always be stated.
     for phrase in ["Synthetic data only", "No real-world accuracy claim",
-                   "No full CAD", "No OCR", "No signed evidence"]:
+                   "No full CAD", "No OCR", "No signed evidence",
+                   # W3: the web page limits are stated here as well as in
+                   # docs/WEBAPP.md, and must not drift out of this list.
+                   "loopback only", "no authentication"]:
         assert phrase in text
+
+
+def test_the_web_page_doc_states_its_routes_and_run_folder() -> None:
+    text = (ROOT / "docs" / "WEBAPP.md").read_text(encoding="utf-8")
+    flat = " ".join(text.split())
+    # The route table is the page's contract; without it the page documents
+    # nothing a reader can act on.
+    assert "## Routes" in text
+    # A web run always writes both files (src/aec/report.py write_report).
+    assert "`report.md`" in flat
+    # The measurement answer names the card count, null when not requested.
+    assert "`cards`:" in flat
+    # The JSON answer is sanitized; the console keeps the traceback.
+    assert "traceback" in flat
 
 
 def test_limitations_doc_states_the_card_limit() -> None:
