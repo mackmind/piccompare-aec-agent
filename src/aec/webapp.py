@@ -30,25 +30,32 @@ import html
 import json
 import re
 import secrets
+import shutil
 import socket
 import sys
 import threading
 import traceback
+import uuid
 import webbrowser
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any, NoReturn, cast
-from urllib.parse import quote, urlsplit
+from urllib.parse import parse_qs, quote, urlsplit
 
+from aec import ops, tool_registry
+from aec.evidence import load_report
 from aec.ops import OpsError
 from aec.redact import redact
+from aec.viewer import render_report_html
 
 LOOPBACK_HOSTS = frozenset({"127.0.0.1", "::1", "localhost"})
 MAX_BODY_BYTES = 64 * 1024
 RUN_ID = re.compile(r"^[0-9a-f]{32}$")
 SAFE_NAME = re.compile(r"^[A-Za-z0-9._-]+$")
+FORM_TYPE = "application/x-www-form-urlencoded"
 CONTENT_SECURITY_POLICY = (
     "default-src 'none'; img-src 'self' data:; style-src 'unsafe-inline'; "
     "form-action 'self'"
@@ -69,6 +76,44 @@ _EXPORT_FILE = re.compile(r"/run/(?P<run_id>[^/]+)/export/(?P<name>[^/]+)")
 _VERIFY = re.compile(r"/run/(?P<run_id>[^/]+)/verify")
 _EXPORT = re.compile(r"/run/(?P<run_id>[^/]+)/export")
 
+PAGE_CSS = """
+body { margin: 0; background: #f7f7f9; color: #16181d;
+  font: 15px/1.5 "Segoe UI", system-ui, sans-serif; }
+main { max-width: 1080px; margin: 0 auto; padding: 32px 20px 64px; }
+h1 { font-size: 24px; margin: 0 0 8px; }
+h2 { font-size: 18px; margin: 0 0 10px; }
+section { margin-top: 28px; }
+.lede, .note { color: #545a66; margin: 0 0 12px; }
+table { width: 100%; border-collapse: collapse; background: #ffffff; }
+th, td { border: 1px solid #d7dbe3; padding: 8px; text-align: left;
+  vertical-align: top; }
+th { background: #eceff4; font-weight: 600; white-space: nowrap; }
+code { font: 13px/1.4 Consolas, ui-monospace, monospace; }
+pre { margin: 0; font: 12px/1.4 Consolas, ui-monospace, monospace;
+  white-space: pre-wrap; word-break: break-word; }
+form { margin: 0; }
+label { margin-right: 10px; }
+button { padding: 6px 14px; border: 1px solid #16181d; border-radius: 4px;
+  background: #16181d; color: #f7f7f9; font: inherit; cursor: pointer; }
+a { color: #12467a; }
+.ok { color: #1b5e20; font-weight: 600; }
+.reasons { color: #8a1f11; }
+"""
+
+# Added to the viewer's own document, not to the pages this module builds, so
+# the viewer's look is untouched and only the bar is new.
+APP_CSS = """
+.appbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+  margin: 0; padding: 10px 20px; background: #16181d; color: #f7f7f9;
+  font: 14px/1.4 "Segoe UI", system-ui, sans-serif; }
+.appbar a { color: #f7f7f9; text-decoration: none; font-weight: 600; }
+.appbar .pair { color: #b9c0cc; }
+.appbar form { margin: 0 0 0 auto; }
+.appbar form + form { margin-left: 8px; }
+.appbar button { padding: 5px 12px; border: 1px solid #b9c0cc; border-radius: 4px;
+  background: #f7f7f9; color: #16181d; font: inherit; cursor: pointer; }
+"""
+
 
 class WebAppError(ValueError):
     """The app refuses to start with this configuration."""
@@ -77,10 +122,13 @@ class WebAppError(ValueError):
 class _HttpError(Exception):
     """A refusal that becomes a JSON answer carrying this status."""
 
-    def __init__(self, status: int, message: str) -> None:
+    def __init__(
+        self, status: int, message: str, *, allow: str | None = None
+    ) -> None:
         super().__init__(message)
         self.status = status
         self.message = message
+        self.allow = allow
 
 
 @dataclass(frozen=True)
@@ -163,15 +211,15 @@ class _Handler(BaseHTTPRequestHandler):
         try:
             self._dispatch(method)
         except _HttpError as error:
-            self._json(error.status, {"error": error.message}, close=True)
+            extra = () if error.allow is None else (("Allow", error.allow),)
+            self._json(error.status, {"error": error.message}, extra=extra, close=True)
         except OpsError as error:
             sys.stderr.write(self._clean(str(error)) + "\n")
             self._json(400, {"error": self._clean(str(error))}, close=True)
         except (BrokenPipeError, ConnectionResetError):
             self.close_connection = True
         except Exception as error:
-            detail = traceback.format_exc()
-            sys.stderr.write(detail)
+            sys.stderr.write(traceback.format_exc())
             sys.stderr.flush()
             message = self._clean(str(error)) or "internal error"
             self._json(500, {"error": message}, close=True)
@@ -184,25 +232,202 @@ class _Handler(BaseHTTPRequestHandler):
             self._post(path)
 
     def _get(self, path: str) -> None:
-        raise _HttpError(404, "not found")
+        if path == "/":
+            self._page(200, _index_page(self.state))
+            return
+        if path == "/tools":
+            self._page(200, _tools_page())
+            return
+        if path == "/healthz":
+            self._json(200, {"ok": True})
+            return
+        match = _RUN_PAGE.fullmatch(path)
+        if match is not None:
+            self._run_page(match.group("run_id"))
+            return
+        match = _CARD.fullmatch(path)
+        if match is not None:
+            self._card(match.group("run_id"), match.group("name"))
+            return
+        match = _EXPORT_FILE.fullmatch(path)
+        if match is not None:
+            self._export_file(match.group("run_id"), match.group("name"))
+            return
+        self._refuse(path, method="GET")
 
     def _post(self, path: str) -> None:
+        action = self._post_action(path)
+        form = self._form()
+        self._require_token(form.get("token", ""))
+        action(form)
+
+    def _post_action(self, path: str) -> Callable[[dict[str, str]], None]:
+        """The action a POST path names, resolved before its body is read."""
+        if path == "/measure":
+            return self._measure
+        match = _VERIFY.fullmatch(path)
+        if match is not None:
+            run_id = match.group("run_id")
+            return lambda form: self._verify(run_id)
+        match = _EXPORT.fullmatch(path)
+        if match is not None:
+            run_id = match.group("run_id")
+            return lambda form: self._export(run_id)
+        self._refuse(path, method="POST")
+
+    def _refuse(self, path: str, *, method: str) -> NoReturn:
+        """405 for a known path with the other method, 404 for anything else."""
+        if method == "GET" and _is_post_path(path):
+            raise _HttpError(405, "method not allowed", allow="POST")
+        if method == "POST" and _is_get_path(path):
+            raise _HttpError(405, "method not allowed", allow="GET")
         raise _HttpError(404, "not found")
 
-    def _refuse_unknown(self, path: str) -> NoReturn:
-        """405 for a known path with the wrong method, 404 for anything else."""
-        if path == "/measure" or _VERIFY.fullmatch(path) or _EXPORT.fullmatch(path):
-            raise _HttpError(405, "method not allowed")
-        raise _HttpError(404, "not found")
+    def _form(self) -> dict[str, str]:
+        """Read the one content type and size this app accepts, or refuse."""
+        raw_length = self.headers.get("Content-Length")
+        if raw_length is None:
+            raise _HttpError(400, "a form body is required")
+        try:
+            length = int(raw_length)
+        except ValueError:
+            raise _HttpError(400, "a form body is required") from None
+        if length < 0:
+            raise _HttpError(400, "a form body is required")
+        if length > MAX_BODY_BYTES:
+            raise _HttpError(413, "request body too large")
+        kind = self.headers.get("Content-Type", "").split(";", 1)[0].strip().lower()
+        if kind != FORM_TYPE:
+            raise _HttpError(400, "a form body is required")
+        raw = self.rfile.read(length)
+        try:
+            text = raw.decode("utf-8")
+        except UnicodeDecodeError:
+            raise _HttpError(400, "a form body must be UTF-8") from None
+        parsed = parse_qs(text, keep_blank_values=True)
+        return {name: values[-1] for name, values in parsed.items() if values}
+
+    def _require_token(self, provided: str) -> None:
+        token = self.state.token
+        if (
+            not provided
+            or not provided.isascii()
+            or not secrets.compare_digest(provided, token)
+        ):
+            raise _HttpError(403, "a valid session token is required")
+
+    def _measure(self, form: dict[str, str]) -> None:
+        directory = self._pair_directory(form.get("pair", ""))
+        run_id = uuid.uuid4().hex
+        run_dir = self.state.workspace / run_id
+        run_dir.mkdir(parents=True)
+        try:
+            ops.measure(directory, run_dir, cards=form.get("cards") == "on")
+        except Exception:
+            # A run that produced no report must not leave a directory behind
+            # that would answer 404 with a path the reader cannot explain.
+            shutil.rmtree(run_dir, ignore_errors=True)
+            raise
+        location = f"/run/{run_id}?token={quote(self.state.token, safe='')}"
+        self._answer(
+            303,
+            "text/plain; charset=utf-8",
+            b"",
+            extra=(("Location", location),),
+        )
+
+    def _pair_directory(self, pair: str) -> Path:
+        fixtures = self.state.fixtures
+        if not SAFE_NAME.fullmatch(pair) or pair in {".", ".."}:
+            raise _HttpError(400, "unknown fixture pair")
+        candidate = (fixtures / pair).resolve()
+        if candidate.parent != fixtures or not (candidate / "config.json").is_file():
+            raise _HttpError(400, "unknown fixture pair")
+        return candidate
+
+    def _run_page(self, run_id: str) -> None:
+        run_dir = self._run_directory(run_id)
+        report = load_report(_report_file(run_dir))
+        page = render_report_html(
+            report,
+            card_url_prefix=f"/run/{run_id}/card",
+            cards_dir=run_dir,
+        )
+        self._page(
+            200,
+            _with_run_bar(
+                page,
+                run_id=run_id,
+                pair_id=report.plan.pair_id,
+                token=self.state.token,
+            ),
+        )
+
+    def _run_directory(self, run_id: str) -> Path:
+        if not RUN_ID.fullmatch(run_id):
+            raise _HttpError(404, "no such run")
+        workspace = self.state.workspace
+        candidate = (workspace / run_id).resolve()
+        if candidate.parent != workspace or not candidate.is_dir():
+            raise _HttpError(404, "no such run")
+        return candidate
+
+    def _card(self, run_id: str, name: str) -> None:
+        run_dir = self._run_directory(run_id)
+        path = _child_file(run_dir / "cards", name)
+        self._bytes(path.read_bytes(), "image/png")
+
+    def _export_file(self, run_id: str, name: str) -> None:
+        run_dir = self._run_directory(run_id)
+        path = _child_file(run_dir / "export", name)
+        media = (
+            "image/svg+xml"
+            if path.suffix.lower() == ".svg"
+            else "application/octet-stream"
+        )
+        self._bytes(path.read_bytes(), media)
+
+    def _verify(self, run_id: str) -> None:
+        run_dir = self._run_directory(run_id)
+        result = ops.verify(_report_file(run_dir))
+        self._page(
+            200,
+            _verify_page(
+                run_id=run_id,
+                token=self.state.token,
+                ok=bool(result["ok"]),
+                reasons=[str(reason) for reason in result["reasons"]],
+            ),
+        )
+
+    def _export(self, run_id: str) -> None:
+        run_dir = self._run_directory(run_id)
+        result = ops.export(_report_file(run_dir), out=run_dir / "export")
+        self._page(
+            200,
+            _export_page(
+                run_id=run_id,
+                token=self.state.token,
+                files=[Path(str(path)).name for path in result["files"]],
+            ),
+        )
 
     def _page(self, status: int, page: str) -> None:
         self._answer(status, HTML_TYPE, page.encode("utf-8"))
 
+    def _bytes(self, body: bytes, content_type: str) -> None:
+        self._answer(200, content_type, body)
+
     def _json(
-        self, status: int, payload: dict[str, Any], *, close: bool = False
+        self,
+        status: int,
+        payload: dict[str, Any],
+        *,
+        extra: tuple[tuple[str, str], ...] = (),
+        close: bool = False,
     ) -> None:
         body = json.dumps(payload, ensure_ascii=True).encode("ascii")
-        self._answer(status, JSON_TYPE, body, close=close)
+        self._answer(status, JSON_TYPE, body, extra=extra, close=close)
 
     def _answer(
         self,
@@ -234,9 +459,230 @@ def _status_text(code: int) -> str:
         return "request refused"
 
 
+def _is_post_path(path: str) -> bool:
+    return path == "/measure" or bool(
+        _VERIFY.fullmatch(path) or _EXPORT.fullmatch(path)
+    )
+
+
+def _is_get_path(path: str) -> bool:
+    if path in {"/", "/tools", "/healthz"}:
+        return True
+    return any(
+        pattern.fullmatch(path) for pattern in (_RUN_PAGE, _CARD, _EXPORT_FILE)
+    )
+
+
 def _text(value: object) -> str:
     """Escape one value for text and attribute contexts alike."""
     return html.escape(str(value), quote=True)
+
+
+def _report_file(run_dir: Path) -> Path:
+    path = run_dir / "report.json"
+    if not path.is_file():
+        raise _HttpError(404, "no such run")
+    return path
+
+
+def _child_file(directory: Path, name: str) -> Path:
+    """The one file ``name`` inside ``directory``; anything else is a 404.
+
+    The name is checked before the filesystem is touched, so no request can
+    name a path: no separator, no drive letter and no ``.`` or ``..``.
+    """
+    if not SAFE_NAME.fullmatch(name) or name in {".", ".."}:
+        raise _HttpError(404, "no such file")
+    path = directory / name
+    if not path.is_file():
+        raise _HttpError(404, "no such file")
+    return path
+
+
+def _schema_text(tool: tool_registry.Tool) -> str:
+    """One tool's derived input schema as readable JSON."""
+    return json.dumps(tool.json_schema, ensure_ascii=True, sort_keys=True, indent=2)
+
+
+def _document(title: str, body: str) -> str:
+    return "\n".join(
+        [
+            "<!DOCTYPE html>",
+            '<html lang="en">',
+            "<head>",
+            '<meta charset="utf-8">',
+            '<meta name="viewport" content="width=device-width, initial-scale=1">',
+            f"<title>{_text(title)}</title>",
+            f"<style>{PAGE_CSS}</style>",
+            "</head>",
+            "<body>",
+            "<main>",
+            body,
+            "</main>",
+            "</body>",
+            "</html>",
+            "",
+        ]
+    )
+
+
+def _fixture_names(fixtures: Path) -> list[str]:
+    """The pairs a Measure form can name: directories holding a config."""
+    try:
+        return sorted(
+            path.name
+            for path in fixtures.iterdir()
+            if path.is_dir() and (path / "config.json").is_file()
+        )
+    except OSError:
+        return []
+
+
+def _index_page(state: _State) -> str:
+    names = _fixture_names(state.fixtures)
+    rows = [
+        "<tr>"
+        f"<td><code>{_text(name)}</code></td>"
+        "<td>"
+        '<form method="post" action="/measure">'
+        f'<input type="hidden" name="pair" value="{_text(name)}">'
+        f'<input type="hidden" name="token" value="{_text(state.token)}">'
+        '<label><input type="checkbox" name="cards" value="on" checked>'
+        " evidence cards</label>"
+        '<button type="submit">Measure</button>'
+        "</form>"
+        "</td>"
+        "</tr>"
+        for name in names
+    ]
+    if rows:
+        table = (
+            "<table><thead><tr><th>Pair</th><th>Measure</th></tr></thead><tbody>"
+            + "".join(rows)
+            + "</tbody></table>"
+        )
+    else:
+        table = '<p class="note">No fixture pair was found under the fixtures folder.</p>'
+    body = "\n".join(
+        [
+            "<h1>PicCompare AEC</h1>",
+            '<p class="lede">Measure a prepared floor-plan pair, then read the report, '
+            "re-check it and export it. This page is served from this machine only, "
+            "and every action carries the token minted when the server started.</p>",
+            "<section>",
+            "<h2>Fixture pairs</h2>",
+            f'<p class="note">{len(names)} pairs available.</p>',
+            table,
+            "</section>",
+            "<section>",
+            "<h2>Elsewhere</h2>",
+            f'<p><a href="/tools">Tool registry</a> - the {len(tool_registry.TOOLS)} '
+            "tools this repository publishes to an AI assistant.</p>",
+            "</section>",
+        ]
+    )
+    return _document("PicCompare AEC - local web app", body)
+
+
+def _tools_page() -> str:
+    rows = [
+        "<tr>"
+        f"<td><code>{_text(tool.name)}</code></td>"
+        f"<td>{_text(tool.status)}</td>"
+        f"<td>{_text(tool.description)}</td>"
+        f"<td><pre>{_text(_schema_text(tool))}</pre></td>"
+        "</tr>"
+        for tool in tool_registry.TOOLS
+    ]
+    body = "\n".join(
+        [
+            "<h1>Tool registry</h1>",
+            f'<p class="lede">{len(tool_registry.TOOLS)} tools this repository '
+            "publishes to an AI assistant. Each input schema is derived from its "
+            "registry entry, which is the single source of the protocol schema. "
+            "Nothing on this page runs a tool.</p>",
+            "<section>",
+            "<table><thead><tr><th>Name</th><th>Status</th><th>Description</th>"
+            "<th>Input schema</th></tr></thead><tbody>",
+            *rows,
+            "</tbody></table>",
+            "</section>",
+        ]
+    )
+    return _document("Tool registry - PicCompare AEC", body)
+
+
+def _back_link(run_id: str, token: str) -> str:
+    return (
+        f'<p><a href="/run/{_text(run_id)}?token={_text(quote(token, safe=""))}">'
+        "Back to the report</a></p>"
+    )
+
+
+def _verify_page(
+    *, run_id: str, token: str, ok: bool, reasons: Sequence[str]
+) -> str:
+    if ok:
+        result = (
+            "<h1>Report verifies</h1>"
+            '<p class="ok">Every recorded fingerprint matched: the report digest, '
+            "both input images, the elements and the measurements.</p>"
+        )
+    else:
+        items = "".join(f"<li>{_text(reason)}</li>" for reason in reasons)
+        if not items:
+            items = "<li>no reason was recorded</li>"
+        result = (
+            "<h1>Report does not verify</h1>"
+            f'<ul class="reasons">{items}</ul>'
+        )
+    return _document("Verify - PicCompare AEC", result + _back_link(run_id, token))
+
+
+def _export_page(*, run_id: str, token: str, files: Sequence[str]) -> str:
+    items = "".join(
+        f'<li><a href="/run/{_text(run_id)}/export/{_text(name)}">{_text(name)}</a></li>'
+        for name in files
+    )
+    result = (
+        "<h1>Exported</h1>"
+        f'<p class="lede">{len(files)} files were written under this run\'s '
+        "export folder.</p>"
+        f"<ul>{items}</ul>"
+    )
+    return _document("Export - PicCompare AEC", result + _back_link(run_id, token))
+
+
+def _run_bar(*, run_id: str, pair_id: str, token: str) -> str:
+    hidden = f'<input type="hidden" name="token" value="{_text(token)}">'
+    return "\n".join(
+        [
+            '<nav class="appbar">',
+            '<a href="/">PicCompare AEC</a>',
+            f'<span class="pair">{_text(pair_id)}</span>',
+            f'<form method="post" action="/run/{_text(run_id)}/verify">{hidden}'
+            '<button type="submit">Verify report</button></form>',
+            f'<form method="post" action="/run/{_text(run_id)}/export">{hidden}'
+            '<button type="submit">Export SVG</button></form>',
+            "</nav>",
+        ]
+    )
+
+
+def _with_run_bar(page: str, *, run_id: str, pair_id: str, token: str) -> str:
+    """Add the app bar and its CSS to the viewer's own document.
+
+    The viewer is a complete document and is not edited here, so its two stable
+    anchors - ``</head>`` and ``<main>`` - are where the bar goes. A viewer that
+    loses either anchor raises instead of silently dropping the buttons.
+    """
+    if "</head>" not in page or "<main>" not in page:
+        raise RuntimeError(
+            "the viewer page has no head or main to attach the run bar to"
+        )
+    styled = page.replace("</head>", f"<style>{APP_CSS}</style>\n</head>", 1)
+    bar = _run_bar(run_id=run_id, pair_id=pair_id, token=token)
+    return styled.replace("<main>", "<main>\n" + bar, 1)
 
 
 def build_app(
