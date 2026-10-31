@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from aec.cards import collect_cards
+from aec.cards import CARD_LIMITATION, collect_cards
 from aec.compare import candidate_findings, compare_measurements
 from aec.correspondence import match_elements
 from aec.critic import DeterministicCritic
@@ -141,6 +141,7 @@ def run_pair(
             elements_by_id,
             evidence=evidence,
         )
+        limitations.append(CARD_LIMITATION)
     report = build_report(
         engine={"name": "fixture", "mode": "offline_deterministic"},
         inputs={"a": "a.png", "b": "b.png"},

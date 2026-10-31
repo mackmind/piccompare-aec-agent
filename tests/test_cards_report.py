@@ -197,3 +197,38 @@ def test_cli_measure_without_cards_writes_no_cards(tmp_path, capsys) -> None:
 def test_cli_measure_cards_require_out(capsys) -> None:
     assert main(["measure", "--fixture", str(FIXTURE), "--cards"]) == 2
     assert "FAIL" in capsys.readouterr().out
+
+
+CARD_LIMITATION = (
+    "Evidence cards are raster crops of the plan at the measured element's box; "
+    "they show what was measured, not that the measurement is correct."
+)
+
+
+def test_cards_add_the_honesty_limitation(tmp_path) -> None:
+    result = run_pair(FIXTURE, tmp_path, cards=True)
+    assert CARD_LIMITATION in result.report.limitations
+    assert CARD_LIMITATION in (tmp_path / "report.md").read_text(encoding="utf-8")
+    data = json.loads((tmp_path / "report.json").read_text(encoding="ascii"))
+    assert CARD_LIMITATION in data["limitations"]
+
+
+def test_a_no_cards_run_does_not_add_the_limitation(tmp_path) -> None:
+    result = run_pair(FIXTURE, tmp_path)
+    assert CARD_LIMITATION not in result.report.limitations
+    assert CARD_LIMITATION not in (tmp_path / "report.md").read_text(encoding="utf-8")
+
+
+def test_two_card_runs_produce_identical_card_hashes(tmp_path) -> None:
+    first = run_pair(FIXTURE, tmp_path / "one", cards=True)
+    second = run_pair(FIXTURE, tmp_path / "two", cards=True)
+    first_cards = [
+        (item.side, item.sha256, item.bytes, item.box_px)
+        for item in first.report.evidence_cards
+    ]
+    second_cards = [
+        (item.side, item.sha256, item.bytes, item.box_px)
+        for item in second.report.evidence_cards
+    ]
+    assert first_cards == second_cards
+    assert len(first_cards) == 2

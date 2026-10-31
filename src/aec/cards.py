@@ -23,6 +23,10 @@ from aec.models import Element, EvidenceCard, Finding, PageGeometry
 MAX_CARD_BYTES = 2 * 1024 * 1024
 MATERIALITY_ORDER = {"high": 0, "medium": 1, "low": 2}
 _UNSAFE_NAME = re.compile(r"[^A-Za-z0-9._-]+")
+CARD_LIMITATION = (
+    "Evidence cards are raster crops of the plan at the measured element's box; "
+    "they show what was measured, not that the measurement is correct."
+)
 
 
 class CardError(ValueError):
