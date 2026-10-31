@@ -7,8 +7,9 @@ print, comes from :mod:`aec.ops` so a terminal and an assistant share one path.
 from __future__ import annotations
 
 import argparse
+from pathlib import Path
 
-from aec import __version__, ops
+from aec import __version__, ops, webapp
 from aec.engine import EngineNotFound
 
 
@@ -73,6 +74,19 @@ def _engine_info(args: argparse.Namespace) -> int:
     return 0
 
 
+def _serve(args: argparse.Namespace) -> int:
+    try:
+        return webapp.serve(
+            workspace=Path(args.workspace),
+            fixtures=Path(args.fixtures),
+            port=args.port,
+            open_browser=not args.no_open,
+        )
+    except webapp.WebAppError as error:
+        print(f"FAIL {error}")
+        return 2
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="aec")
     parser.add_argument("--version", action="version", version=__version__)
@@ -109,6 +123,21 @@ def main(argv: list[str] | None = None) -> int:
     engine_info.add_argument("--workspace-root")
     engine_info.add_argument("--engine-tree")
     engine_info.set_defaults(handler=_engine_info)
+
+    serve = subparsers.add_parser(
+        "serve", help="serve the local web page on loopback"
+    )
+    serve.add_argument(
+        "--port", type=int, default=0, help="0 picks an ephemeral port"
+    )
+    serve.add_argument("--fixtures", default="fixtures/aec")
+    serve.add_argument("--workspace", default="runs/web")
+    serve.add_argument(
+        "--no-open",
+        action="store_true",
+        help="print the URL without opening a browser",
+    )
+    serve.set_defaults(handler=_serve)
 
     args = parser.parse_args(argv)
     return int(args.handler(args))
