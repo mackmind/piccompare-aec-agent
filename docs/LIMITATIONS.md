@@ -39,3 +39,8 @@ the submission, not caveats added afterwards.
   image, not engine comparisons.
 - **Deterministic critic.** The offline review step is a guard for test
   evaluation, not a substitute for the live Muse Spark reviewer.
+- **The local web page is loopback only, with no authentication.** It asks for a
+  per-session token on every action that writes or re-checks a run, is not a
+  hosted service, must not be exposed, and does not change any measurement; the
+  desktop user interface shown in the demo video belongs to the separate
+  PicCompare application and is not part of this repository.
