@@ -37,6 +37,7 @@ can run).
 | Pipeline | `src/aec/pipeline.py` | offline end-to-end run on a prepared example |
 | Live pipeline | `src/aec/live.py` | live run: one SAM box prompt per proposed region per side, the tolerance widening live masks need, and the Muse-backed review call |
 | Report/evidence | `src/aec/report.py`, `evidence.py` | plain-text JSON and Markdown; fingerprints (hashes); replay |
+| Report viewer | `src/aec/viewer.py` | a report rendered as one standalone HTML page: inline CSS, no JavaScript and no remote asset, every value escaped; the sections and their order mirror the Markdown renderer |
 | Evidence cards | `src/aec/cards.py` | deterministic PNG crop of the plan around a finding's measured box, one per side, with its hash and size recorded; a crop that cannot be made is recorded as skipped |
 | Evaluation | `src/aec/evaluation.py` | scores an offline or live run against the prepared ground truth: verified, refused, missed and false changes; writes `metrics.json` |
 | Batch/export | `src/aec/batch.py`, `export.py` | sorting by how much a change matters; measured SVG (scalable vector graphics) or DXF (drawing exchange format) drawing overlays |
