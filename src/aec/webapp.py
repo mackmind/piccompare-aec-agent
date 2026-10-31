@@ -53,6 +53,10 @@ from aec.viewer import render_report_html
 
 LOOPBACK_HOSTS = frozenset({"127.0.0.1", "::1", "localhost"})
 MAX_BODY_BYTES = 64 * 1024
+# A body this module refuses is still read and dropped up to this many bytes:
+# closing a socket with unread bytes in its receive buffer makes the operating
+# system send a reset, which can destroy the refusal the client has not read.
+MAX_DRAIN_BYTES = 1 << 20
 RUN_ID = re.compile(r"^[0-9a-f]{32}$")
 SAFE_NAME = re.compile(r"^[A-Za-z0-9._-]+$")
 FORM_TYPE = "application/x-www-form-urlencoded"
@@ -226,6 +230,8 @@ class _Handler(BaseHTTPRequestHandler):
 
     def _dispatch(self, method: str) -> None:
         path = urlsplit(self.path).path
+        if _unsafe_path(path):
+            raise _HttpError(400, "refused request path")
         if method == "GET":
             self._get(path)
         else:
@@ -295,6 +301,7 @@ class _Handler(BaseHTTPRequestHandler):
         if length < 0:
             raise _HttpError(400, "a form body is required")
         if length > MAX_BODY_BYTES:
+            self._drain(length)
             raise _HttpError(413, "request body too large")
         kind = self.headers.get("Content-Type", "").split(";", 1)[0].strip().lower()
         if kind != FORM_TYPE:
@@ -306,6 +313,20 @@ class _Handler(BaseHTTPRequestHandler):
             raise _HttpError(400, "a form body must be UTF-8") from None
         parsed = parse_qs(text, keep_blank_values=True)
         return {name: values[-1] for name, values in parsed.items() if values}
+
+    def _drain(self, length: int) -> None:
+        """Read and drop a body that is being refused, within a fixed bound.
+
+        Reading the bytes before answering keeps the refusal readable; the
+        bound means an enormous body costs a fixed amount and then the socket
+        is reset rather than buffered.
+        """
+        remaining = min(length, MAX_DRAIN_BYTES)
+        while remaining > 0:
+            chunk = self.rfile.read(min(remaining, 64 * 1024))
+            if not chunk:
+                return
+            remaining -= len(chunk)
 
     def _require_token(self, provided: str) -> None:
         token = self.state.token
@@ -446,6 +467,9 @@ class _Handler(BaseHTTPRequestHandler):
         for name, value in extra:
             self.send_header(name, value)
         if close:
+            # Announce the close: a client that keeps the socket would reuse a
+            # connection this server is about to drop.
+            self.send_header("Connection", "close")
             self.close_connection = True
         self.end_headers()
         if body:
@@ -473,6 +497,30 @@ def _is_get_path(path: str) -> bool:
     )
 
 
+def _unsafe_path(path: str) -> bool:
+    """Whether a request path carries anything that could name a location.
+
+    No route takes a percent-encoded segment, so a ``%`` is refused rather than
+    decoded: a decoder is exactly where a traversal slips through. A backslash
+    is refused because Windows reads it as a separator, a ``.`` or ``..``
+    segment and a drive-letter prefix are refused because they name a place
+    rather than a resource, and a leading ``//`` is refused because a
+    request-target in that form can be read as another host.
+    """
+    if not path.startswith("/") or path.startswith("//"):
+        return True
+    if "%" in path or "\\" in path:
+        return True
+    for segment in path.split("/"):
+        if segment in {".", ".."}:
+            return True
+        if len(segment) > 1 and segment[1] == ":":
+            return True
+        if any(ord(character) < 32 or ord(character) == 127 for character in segment):
+            return True
+    return False
+
+
 def _text(value: object) -> str:
     """Escape one value for text and attribute contexts alike."""
     return html.escape(str(value), quote=True)
@@ -489,14 +537,21 @@ def _child_file(directory: Path, name: str) -> Path:
     """The one file ``name`` inside ``directory``; anything else is a 404.
 
     The name is checked before the filesystem is touched, so no request can
-    name a path: no separator, no drive letter and no ``.`` or ``..``.
+    name a path: no separator, no drive letter and no ``.`` or ``..``. The
+    directory and the candidate are then resolved, and the resolved candidate
+    must keep the resolved directory as its direct parent, which is what stops
+    a symlink inside the directory from reaching outside it.
     """
     if not SAFE_NAME.fullmatch(name) or name in {".", ".."}:
         raise _HttpError(404, "no such file")
-    path = directory / name
-    if not path.is_file():
+    try:
+        base = directory.resolve(strict=True)
+    except OSError:
+        raise _HttpError(404, "no such file") from None
+    candidate = (base / name).resolve()
+    if candidate.parent != base or not candidate.is_file():
         raise _HttpError(404, "no such file")
-    return path
+    return candidate
 
 
 def _schema_text(tool: tool_registry.Tool) -> str:
