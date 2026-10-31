@@ -130,9 +130,12 @@ definition guard failed.
   segmentation of a proposed region, not independent room discovery.
 - **SAM word prompts: 0 objects** on `resize-01/a`, `identical-01/a`, `merge-01/a`
   for `room`, `wall`, `door` and `table`. Propose regions from the plan geometry
-  (`aec.propose.propose_boxes`, `--boxes-from-plan`) and let SAM outline each box;
-  that recovers every room on all seven test pairs at overlap scores of
-  0.92–0.96.
+  (`aec.propose.propose_boxes`, `--boxes-from-plan`) and let SAM outline each box.
+  On the fixtures, the proposer gives every ground-truth room in all 12 fixture
+  pairs (96 rooms, both sides) a box at an overlap score (IoU) of 0.923 to 0.959
+  against the committed `sam31.json` boxes, above the 0.5 test floor. The
+  proposer is model-free, so that measures the boxes SAM is asked to outline,
+  not a live-model score.
 - **One live pair** (`resize-01`, proposed regions): 1 verified finding (ROOM A
   16.040 → 17.988 square metres), 0 not compared, 0 rejected, report digest
   `e9fb9a08…`, run records `live_meta`, `sam-3.1`,
